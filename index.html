@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agente Termohigrométrico - IES Renaturalización</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js y adaptador de fechas -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <!-- PapaParse para procesar CSV -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <!-- html2pdf para generación de PDF en cliente -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <style>
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; }
+        
+        /* Contenedores de gráficas */
+        .chart-container { position: relative; height: 350px; width: 100%; }
+        .chart-container-large { position: relative; height: 450px; width: 100%; }
+
+        /* Estilos texto informe */
+        .informe-prose h2 { font-size: 1.5rem; font-weight: 700; color: #1e293b; margin-top: 2rem; margin-bottom: 1rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; }
+        .informe-prose p { margin-bottom: 1rem; color: #475569; line-height: 1.6; }
+        .informe-prose ul { margin-bottom: 1rem; padding-left: 1.5rem; list-style-type: disc; color: #475569; }
+        
+        /* Pestañas */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Drag and Drop Zone */
+        .drop-zone { border: 2px dashed #cbd5e1; transition: all 0.2s ease; }
+        .drop-zone.dragover { border-color: #10b981; background-color: #ecfdf5; }
+        
+        /* Heatmap Styles */
+        .heatmap-grid { display: grid; grid-template-columns: 60px repeat(24, 1fr); gap: 2px; }
+        .heatmap-cell { height: 24px; border-radius: 2px; transition: all 0.2s; }
+        .heatmap-cell:hover { transform: scale(1.3); box-shadow: 0 0 8px rgba(0,0,0,0.4); z-index: 10; border: 1px solid #333; }
+        
+        /* Ajustes para PDF */
+        .pdf-export-container { background-color: white; padding: 20px; }
+    </style>
+</head>
+<body class="text-slate-800 h-screen flex flex-col overflow-hidden">
+
+    <nav class="bg-slate-900 text-white shadow-lg shrink-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center gap-3">
+                    <svg class="w-8 h-8 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path></svg>
+                    <span class="font-bold text-xl tracking-tight">Agente Clima IES</span>
+                </div>
+                <div class="flex space-x-1 py-3">
+                    <button onclick="openTab('importar')" id="btn-importar" class="px-4 py-2 rounded-md text-sm font-medium transition-colors bg-emerald-600 text-white shadow">1. Cargar Datos</button>
+                    <button onclick="openTab('informe')" id="btn-informe" class="px-4 py-2 rounded-md text-sm font-medium transition-colors text-slate-300 hover:bg-slate-700 hover:text-white disabled:opacity-50" disabled>2. Informe Técnico</button>
+                    <button onclick="openTab('dashboard')" id="btn-dashboard" class="px-4 py-2 rounded-md text-sm font-medium transition-colors text-slate-300 hover:bg-slate-700 hover:text-white disabled:opacity-50" disabled>3. Dashboard</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-50 relative">
+        <div class="max-w-7xl mx-auto">
+
+            <!-- PESTAÑA 0: IMPORTAR DATOS -->
+            <section id="tab-importar" class="tab-content active bg-white rounded-xl shadow-md border border-slate-200 p-8 text-center">
+                <h2 class="text-3xl font-extrabold text-slate-900 mb-4">Motor de Procesamiento Termohigrométrico</h2>
+                <p class="text-slate-600 mb-8 max-w-2xl mx-auto">Arrastra aquí los archivos <strong>.csv</strong> originales exportados por los dataloggers. El sistema aplicará automáticamente los criterios del RD 486/1997, descartará huecos mayores a 22.5 min y calculará el índice ETA27.</p>
+                
+                <div id="drop-zone" class="drop-zone bg-slate-50 rounded-xl p-12 cursor-pointer mx-auto max-w-3xl flex flex-col items-center justify-center min-h-[300px]">
+                    <svg class="w-16 h-16 text-slate-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                    <span class="text-lg font-medium text-slate-700">Arrastra los archivos CSV de las aulas aquí</span>
+                    <span class="text-sm text-slate-500 mt-2">o haz clic para seleccionarlos desde tu equipo</span>
+                    <input type="file" id="file-input" multiple accept=".csv" class="hidden">
+                </div>
+
+                <div id="processing-status" class="mt-8 hidden">
+                    <div class="inline-flex items-center gap-3 px-4 py-2 bg-indigo-50 text-indigo-700 rounded-full font-medium">
+                        <svg class="animate-spin h-5 w-5 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        Procesando datos...
+                    </div>
+                </div>
+
+                <div id="results-summary" class="mt-8 hidden text-left bg-emerald-50 border border-emerald-200 rounded-lg p-6">
+                    <h3 class="text-emerald-800 font-bold text-lg mb-2 flex items-center gap-2">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Procesamiento Completado
+                    </h3>
+                    <ul id="summary-list" class="text-sm text-emerald-700 space-y-1 list-disc list-inside"></ul>
+                    <button onclick="openTab('informe')" class="mt-4 px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded shadow transition-colors">
+                        Ver Informe y Resultados
+                    </button>
+                </div>
+            </section>
+
+            <!-- PESTAÑA 1: INFORME TÉCNICO -->
+            <section id="tab-informe" class="tab-content bg-white rounded-xl shadow-md border border-slate-200 p-8 pdf-export-container relative">
+                
+                <!-- Botón Exportar Informe -->
+                <button onclick="exportToPDF('tab-informe', 'Informe_Tecnico_Termohigrometrico')" class="btn-pdf-export absolute top-6 right-6 flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded shadow transition-colors text-sm font-medium z-10">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Descargar Informe PDF
+                </button>
+
+                <header class="text-center mb-10 pt-4">
+                    <h1 class="text-3xl font-extrabold text-slate-900 mb-2">Informe de Evaluación de Condiciones Termohigrométricas</h1>
+                    <p class="text-slate-500 text-lg">Red de termohigrómetros del IES | Proyecto de Renaturalización</p>
+                </header>
+
+                <div class="informe-prose max-w-4xl mx-auto">
+                    <h2>1. Objeto y alcance</h2>
+                    <p>El presente informe tiene por objeto la evaluación preliminar de las condiciones termohigrométricas a las que está expuesto el profesorado del centro durante el desempeño de su labor docente. El alcance de este análisis está limitado a los dispositivos procesados automáticamente.</p>
+
+                    <h2>2. Criterios Metodológicos Aplicados</h2>
+                    <ul>
+                        <li><strong>Normativa:</strong> RD 486/1997, Anexo III (17 °C - 27 °C admisible).</li>
+                        <li><strong>Huecos aceptados:</strong> Los intervalos mayores de 22,5 minutos han sido excluidos dinámicamente del cómputo de horas evaluadas.</li>
+                        <li><strong>Cálculo ETA27:</strong> Exposición Térmica Acumulada calculada como <code>MAX(0, temperatura-27) × intervalo válido en horas</code> para cada lectura.</li>
+                    </ul>
+
+                    <h2>3. Resumen de Exposición Térmica Acumulada (ETA27)</h2>
+                    <div class="overflow-x-auto my-4 shadow-sm rounded border border-slate-200">
+                        <table class="min-w-full text-sm text-left">
+                            <thead class="bg-slate-100 text-slate-600 font-semibold">
+                                <tr>
+                                    <th class="py-2 px-4">Dispositivo / Aula</th>
+                                    <th class="py-2 px-4 text-center">Horas Evaluadas</th>
+                                    <th class="py-2 px-4 text-center">T. Máxima (°C)</th>
+                                    <th class="py-2 px-4 text-center">Horas > 27 °C</th>
+                                    <th class="py-2 px-4 text-center text-red-600">ETA27 (°C·h)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="informe-tbody" class="divide-y divide-slate-200">
+                                <!-- Se llena dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <p class="mt-6 text-sm text-slate-500 italic">Nota: Para el detalle temporal y espacial, consulte el Anexo de Gráficas (Dashboard).</p>
+                </div>
+            </section>
+
+            <!-- PESTAÑA 2: DASHBOARD INTERACTIVO -->
+            <section id="tab-dashboard" class="tab-content bg-white rounded-xl shadow-md border border-slate-200 p-8 pdf-export-container relative">
+                
+                <!-- Botón Exportar Dashboard -->
+                <button onclick="exportToPDF('tab-dashboard', 'Dashboard_Graficas_Termohigrometricas')" class="btn-pdf-export absolute top-6 right-6 flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded shadow transition-colors text-sm font-medium z-10">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Descargar Dashboard PDF
+                </button>
+
+                <h1 class="text-2xl font-extrabold text-slate-900 mb-8 pt-4 border-b pb-4">Panel Gráfico Interactivo</h1>
+
+                <div class="space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 break-inside-avoid">
+                            <h2 class="text-lg font-bold text-slate-800 text-center mb-4">Figura 1. Exposición térmica acumulada (ETA27)</h2>
+                            <div class="chart-container"><canvas id="chartETA"></canvas></div>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 break-inside-avoid">
+                            <h2 class="text-lg font-bold text-slate-800 text-center mb-4">Figura 2. Tiempo evaluado por encima de 27 °C</h2>
+                            <div class="chart-container"><canvas id="chartTime"></canvas></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 break-inside-avoid">
+                        <h2 class="text-lg font-bold text-slate-800 text-center mb-1">Figura 3. Evolución temporal de las temperaturas</h2>
+                        <p class="text-sm text-center text-slate-500 mb-4">Línea discontinua roja indica el límite normativo de confort (27 °C)</p>
+                        <div class="chart-container-large"><canvas id="chartEvolution"></canvas></div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 overflow-x-auto break-inside-avoid">
+                        <h2 class="text-lg font-bold text-slate-800 text-center mb-6">Figura 4. Mapa horario de temperatura media</h2>
+                        <div class="min-w-[800px]">
+                            <div id="heatmapContainer" class="flex flex-col gap-1"></div>
+                            <div class="flex items-center justify-center gap-6 mt-8 text-sm font-medium">
+                                <span class="flex items-center gap-2"><div class="w-4 h-4 bg-slate-200 rounded border border-slate-300"></div> &lt; 26°C (Confort)</span>
+                                <span class="flex items-center gap-2"><div class="w-4 h-4 bg-amber-300 rounded border border-amber-400"></div> 26-27°C (Precaución)</span>
+                                <span class="flex items-center gap-2"><div class="w-4 h-4 bg-orange-400 rounded border border-orange-500"></div> 27-28°C (Incumplimiento)</span>
+                                <span class="flex items-center gap-2"><div class="w-4 h-4 bg-red-600 rounded border border-red-700"></div> &gt; 28°C (Riesgo)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <script>
+        // --- ESTADO GLOBAL DE DATOS ---
+        let rawData = {}; 
+        let processedStats = []; 
+        let chartInstances = {};
+
+        // --- NAVEGACIÓN ---
+        function openTab(tabId) {
+            if(document.getElementById('btn-' + tabId).disabled) return;
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(btn => {
+                btn.className = "px-4 py-2 rounded-md text-sm font-medium transition-colors text-slate-300 hover:bg-slate-700 hover:text-white disabled:opacity-50";
+            });
+            document.getElementById('tab-' + tabId).classList.add('active');
+            const activeBtn = document.getElementById('btn-' + tabId);
+            activeBtn.className = "px-4 py-2 rounded-md text-sm font-medium transition-colors bg-emerald-600 text-white shadow disabled:opacity-50";
+
+            if (tabId === 'dashboard') renderCharts();
+        }
+
+        // --- EXPORTAR A PDF ---
+        function exportToPDF(containerId, baseFilename) {
+            const element = document.getElementById(containerId);
+            const isDashboard = containerId === 'tab-dashboard';
+            
+            // Ocultar el botón de exportación para que no aparezca en el PDF
+            const buttons = element.querySelectorAll('.btn-pdf-export');
+            buttons.forEach(btn => btn.style.display = 'none');
+
+            // Añadir fecha al nombre del archivo
+            const dateStr = new Date().toISOString().split('T')[0];
+            const filename = `${baseFilename}_${dateStr}.pdf`;
+
+            // Configuración de html2pdf
+            // El Dashboard se exporta en apaisado (landscape) para que quepan las gráficas
+            const opt = {
+                margin:       10,
+                filename:     filename,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, logging: false },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: isDashboard ? 'landscape' : 'portrait' }
+            };
+
+            // Generar PDF y restaurar botones
+            html2pdf().set(opt).from(element).save().then(() => {
+                buttons.forEach(btn => btn.style.display = 'flex');
+            });
+        }
+
+        // --- LÓGICA DEL AGENTE AUTÓNOMO (DRAG & DROP Y PROCESAMIENTO) ---
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+        fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+        function handleFiles(files) {
+            if(files.length === 0) return;
+            document.getElementById('processing-status').classList.remove('hidden');
+            document.getElementById('results-summary').classList.add('hidden');
+            
+            rawData = {};
+            let filesProcessed = 0;
+
+            Array.from(files).forEach(file => {
+                let aulaName = file.name.split('_')[0].replace('.csv', '');
+                
+                Papa.parse(file, {
+                    header: false,
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        let validRows = [];
+                        results.data.forEach(row => {
+                            if(row.length >= 3) {
+                                let dateStr = row[0];
+                                let tempStr = row[1];
+                                let humStr = row[2];
+                                
+                                let dateObj = new Date(dateStr);
+                                let temp = parseFloat(tempStr);
+                                let hum = parseFloat(humStr);
+                                
+                                if(!isNaN(dateObj.getTime()) && !isNaN(temp)) {
+                                    validRows.push({ timestamp: dateObj, temp: temp, hum: hum });
+                                }
+                            }
+                        });
+                        
+                        validRows.sort((a, b) => a.timestamp - b.timestamp);
+                        rawData[aulaName] = validRows;
+                        
+                        filesProcessed++;
+                        if(filesProcessed === files.length) {
+                            processDataAndCalculateMetrics();
+                        }
+                    }
+                });
+            });
+        }
+
+        function processDataAndCalculateMetrics() {
+            processedStats = [];
+            let totalRegistros = 0;
+
+            for (const [aula, registros] of Object.entries(rawData)) {
+                totalRegistros += registros.length;
+                
+                let horasEvaluadas = 0;
+                let horasMas27 = 0;
+                let eta27 = 0;
+                let tMax = -Infinity;
+                let tSum = 0;
+
+                if(registros.length < 2) {
+                    processedStats.push({ aula, registros: registros.length, horasEvaluadas: 0, tMax: registros[0]?.temp || null, horasMas27: 0, eta27: 0, estado: 'No Evaluable' });
+                    continue;
+                }
+
+                for (let i = 0; i < registros.length - 1; i++) {
+                    let current = registros[i];
+                    let next = registros[i+1];
+                    let dtHoras = (next.timestamp - current.timestamp) / (1000 * 60 * 60);
+                    
+                    if (dtHoras <= 0.375) { // 22.5 min
+                        horasEvaluadas += dtHoras;
+                        if (current.temp > 27) {
+                            horasMas27 += dtHoras;
+                            eta27 += (current.temp - 27) * dtHoras;
+                        }
+                    }
+                    
+                    if(current.temp > tMax) tMax = current.temp;
+                    tSum += current.temp;
+                }
+                
+                let last = registros[registros.length-1];
+                if(last.temp > tMax) tMax = last.temp;
+                tSum += last.temp;
+
+                processedStats.push({
+                    aula: aula,
+                    registros: registros.length,
+                    horasEvaluadas: horasEvaluadas,
+                    tMax: tMax === -Infinity ? null : tMax,
+                    horasMas27: horasMas27,
+                    eta27: eta27,
+                    tMedia: tSum / registros.length,
+                    estado: 'Evaluable'
+                });
+            }
+
+            processedStats.sort((a, b) => b.eta27 - a.eta27);
+
+            document.getElementById('processing-status').classList.add('hidden');
+            document.getElementById('results-summary').classList.remove('hidden');
+            
+            const ul = document.getElementById('summary-list');
+            ul.innerHTML = `
+                <li><strong>Archivos procesados:</strong> ${Object.keys(rawData).length}</li>
+                <li><strong>Registros válidos analizados:</strong> ${totalRegistros}</li>
+                <li><strong>Reglas aplicadas:</strong> Filtro de huecos >22.5m, Cálculo Integral de ETA27 completado.</li>
+            `;
+
+            document.getElementById('btn-informe').disabled = false;
+            document.getElementById('btn-dashboard').disabled = false;
+
+            populateTable();
+        }
+
+        // --- RENDERIZADO DE TABLA Y GRÁFICAS ---
+        function populateTable() {
+            const tbody = document.getElementById('informe-tbody');
+            tbody.innerHTML = '';
+
+            processedStats.forEach(stat => {
+                const tr = document.createElement('tr');
+                if (stat.eta27 > 20) tr.className = 'bg-red-50';
+                else if (stat.eta27 > 10) tr.className = 'bg-orange-50';
+                else if (stat.eta27 === 0 && stat.horasEvaluadas > 0) tr.className = 'bg-emerald-50';
+
+                tr.innerHTML = `
+                    <td class="py-2 px-4 font-bold text-slate-800">${stat.aula} ${stat.estado === 'No Evaluable' ? '(Sin info)' : ''}</td>
+                    <td class="py-2 px-4 text-center">${stat.horasEvaluadas.toFixed(2)}</td>
+                    <td class="py-2 px-4 text-center">${stat.tMax !== null ? stat.tMax.toFixed(1) : '-'}</td>
+                    <td class="py-2 px-4 text-center">${stat.horasMas27.toFixed(2)}</td>
+                    <td class="py-2 px-4 text-center font-bold ${stat.eta27 > 0 ? 'text-red-600' : 'text-slate-500'}">${stat.eta27.toFixed(2)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderCharts() {
+            const validStats = processedStats.filter(s => s.estado === 'Evaluable');
+            const labels = validStats.map(s => s.aula);
+            const dataETA = validStats.map(s => s.eta27);
+            const dataTime = validStats.map(s => s.horasMas27);
+
+            Object.values(chartInstances).forEach(chart => chart.destroy());
+
+            const barOptions = {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                animation: { duration: 0 } // Desactivar animación para evitar bugs al exportar a PDF rápido
+            };
+
+            chartInstances.eta = new Chart(document.getElementById('chartETA'), {
+                type: 'bar',
+                data: { labels: labels, datasets: [{ label: 'ETA27', data: dataETA, backgroundColor: '#b91c1c' }] },
+                options: barOptions
+            });
+
+            chartInstances.time = new Chart(document.getElementById('chartTime'), {
+                type: 'bar',
+                data: { labels: labels, datasets: [{ label: 'Horas > 27°C', data: dataTime, backgroundColor: '#f97316' }] },
+                options: barOptions
+            });
+
+            const lineDatasets = [];
+            const colores = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#64748b'];
+            let cIdx = 0;
+
+            for (const [aula, registros] of Object.entries(rawData)) {
+                if (registros.length < 2) continue;
+                
+                const dataPoints = registros.map(r => ({ x: r.timestamp, y: r.temp }));
+                
+                lineDatasets.push({
+                    label: aula,
+                    data: dataPoints,
+                    borderColor: colores[cIdx % colores.length],
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    tension: 0.2,
+                    spanGaps: false
+                });
+                cIdx++;
+            }
+
+            lineDatasets.push({
+                label: 'Límite Normativo (27°C)',
+                data: [{x: rawData[Object.keys(rawData)[0]][0].timestamp, y: 27}, {x: rawData[Object.keys(rawData)[0]][rawData[Object.keys(rawData)[0]].length-1].timestamp, y: 27}],
+                borderColor: '#dc2626',
+                borderDash: [5, 5],
+                borderWidth: 2,
+                pointRadius: 0
+            });
+
+            chartInstances.evolution = new Chart(document.getElementById('chartEvolution'), {
+                type: 'line',
+                data: { datasets: lineDatasets },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    interaction: { mode: 'nearest', intersect: false },
+                    animation: { duration: 0 }, // Desactivar animación
+                    scales: {
+                        x: { type: 'time', time: { displayFormats: { hour: 'dd/MM HH:mm' } } },
+                        y: { min: 24, max: 32 }
+                    }
+                }
+            });
+
+            renderHeatmap();
+        }
+
+        function renderHeatmap() {
+            const heatmapContainer = document.getElementById('heatmapContainer');
+            heatmapContainer.innerHTML = ''; 
+            
+            function getColor(temp) {
+                if (temp === null) return '#f1f5f9'; 
+                if (temp < 26) return '#e2e8f0'; 
+                if (temp >= 26 && temp < 27) return '#fde047'; 
+                if (temp >= 27 && temp < 28) return '#fb923c'; 
+                if (temp >= 28) return '#dc2626'; 
+                return '#f1f5f9';
+            }
+
+            processedStats.filter(s => s.estado === 'Evaluable').forEach(stat => {
+                const aula = stat.aula;
+                const registros = rawData[aula];
+                if (!registros || registros.length < 2) return;
+
+                const row = document.createElement('div');
+                row.className = 'heatmap-grid items-center';
+                
+                const label = document.createElement('div');
+                label.className = 'text-xs font-bold text-slate-700 text-right pr-3';
+                label.textContent = aula;
+                row.appendChild(label);
+
+                // Dividimos el tiempo total en 24 "bloques" para el heatmap visual
+                const firstTime = registros[0].timestamp.getTime();
+                const lastTime = registros[registros.length-1].timestamp.getTime();
+                const timeSpan = lastTime - firstTime;
+                
+                for (let j = 0; j < 24; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'heatmap-cell relative';
+                    
+                    const targetTime = firstTime + (timeSpan * (j / 24));
+                    let closest = registros.reduce((prev, curr) => 
+                        Math.abs(curr.timestamp.getTime() - targetTime) < Math.abs(prev.timestamp.getTime() - targetTime) ? curr : prev
+                    );
+
+                    let valTemp = closest.temp;
+                    
+                    if(Math.abs(closest.timestamp.getTime() - targetTime) > 2 * 60 * 60 * 1000) {
+                        valTemp = null;
+                    }
+
+                    cell.style.backgroundColor = getColor(valTemp);
+                    cell.title = valTemp !== null ? `${aula} - ${closest.timestamp.toLocaleTimeString().slice(0,5)}: ${valTemp.toFixed(1)} °C` : `${aula} - Sin datos`;
+                    
+                    row.appendChild(cell);
+                }
+                heatmapContainer.appendChild(row);
+            });
+        }
+    </script>
+</body>
+</html>
