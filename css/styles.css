@@ -135,3 +135,10 @@ th {
     color: #991b1b;
     font-weight: bold;
 }
+.drag-active {
+
+    border-color: #0f766e;
+
+    background-color: #ccfbf1;
+
+}
