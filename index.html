@@ -1,183 +1,311 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agente Clima IES - V3 (Estable)</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <style>
-        body { font-family: sans-serif; background-color: #f8fafc; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .chart-container { height: 300px; }
-        .heatmap-cell { width: 20px; height: 20px; border-radius: 2px; }
-    </style>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Agente Clima IES v1.0</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<link rel="stylesheet" href="css/styles.css">
+
 </head>
-<body class="p-4 md:p-8">
 
-    <div class="max-w-6xl mx-auto space-y-8">
-        <nav class="flex gap-4 p-4 bg-white rounded-lg shadow-sm border">
-            <button onclick="openTab('importar')" class="px-4 py-2 bg-emerald-600 text-white rounded font-bold">1. Datos</button>
-            <button onclick="openTab('informe')" id="btn-informe" class="px-4 py-2 bg-gray-200 rounded text-gray-500 cursor-not-allowed">2. Informe</button>
-            <button onclick="openTab('dashboard')" id="btn-dashboard" class="px-4 py-2 bg-gray-200 rounded text-gray-500 cursor-not-allowed">3. Dashboard</button>
-        </nav>
+<body class="bg-slate-100 text-slate-800">
 
-        <!-- Pestaña 1: Importación -->
-        <section id="tab-importar" class="tab-content active bg-white p-8 rounded-lg shadow-md text-center">
-            <h2 class="text-2xl font-bold mb-4">Cargar archivos CSV</h2>
-            <div id="drop-zone" class="border-2 border-dashed p-12 cursor-pointer border-gray-300 hover:border-emerald-500 transition-colors">
-                <p>Haz clic para seleccionar o arrastra archivos CSV</p>
-                <input type="file" id="file-input" multiple accept=".csv" class="hidden">
-            </div>
-            <div id="log" class="mt-4 text-sm text-slate-500 font-mono"></div>
-        </section>
+<nav class="bg-slate-900 text-white shadow-lg">
 
-        <!-- Pestaña 2: Informe -->
-        <section id="tab-informe" class="tab-content bg-white p-8 rounded-lg shadow-md">
-            <h2 class="text-2xl font-bold mb-6">Resumen de Resultados</h2>
-            <table class="min-w-full text-sm border-collapse border">
-                <thead class="bg-gray-100">
-                    <tr>
-                        <th class="p-2 border">Aula</th>
-                        <th class="p-2 border">ETA27</th>
-                        <th class="p-2 border">T. Máx</th>
-                        <th class="p-2 border">ST Mín</th>
-                        <th class="p-2 border">ST Med</th>
-                        <th class="p-2 border">ST Máx</th>
-                    </tr>
-                </thead>
-                <tbody id="informe-tbody"></tbody>
-            </table>
-        </section>
+<div class="max-w-7xl mx-auto px-4">
 
-        <!-- Pestaña 3: Dashboard -->
-        <section id="tab-dashboard" class="tab-content bg-white p-8 rounded-lg shadow-md space-y-8">
-            <h2 class="text-2xl font-bold">Dashboard</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="chart-container"><canvas id="chartETA"></canvas></div>
-                <div id="mapaRiesgo" class="p-4 border rounded">
-                    <h3 class="font-bold mb-2">Mapa Riesgo ISGlobal (ST Máx)</h3>
-                    <div id="lista-mapa" class="space-y-1"></div>
-                </div>
-            </div>
-        </section>
-    </div>
+<div class="flex justify-between items-center h-16">
 
-    <script>
-        let rawData = {}; 
+<h1 class="font-bold text-xl">
+Agente Clima IES v1.0
+</h1>
 
-        // 1. Importación Robusta
-        document.getElementById('drop-zone').addEventListener('click', () => document.getElementById('file-input').click());
-        document.getElementById('file-input').addEventListener('change', (e) => handleFiles(e.target.files));
+<div class="space-x-2">
 
-        function handleFiles(files) {
-            const logEl = document.getElementById('log');
-            logEl.innerHTML = "Procesando...";
-            rawData = {};
-            let count = 0;
+<button
+id="btn-importar"
+class="tab-button active-tab"
+onclick="openTab('importar')">
 
-            Array.from(files).forEach(file => {
-                Papa.parse(file, {
-                    skipEmptyLines: true,
-                    dynamicTyping: true, // Esto ayuda a convertir "25.5" en 25.5 automáticamente
-                    complete: (results) => {
-                        try {
-                            const data = results.data;
-                            const aula = file.name.split('.')[0];
-                            let validRows = [];
-                            
-                            // Detección automática de cabecera: si la 2a columna no es número, saltar fila 0
-                            let startIndex = (typeof data[0][1] === 'number') ? 0 : 1;
-                            
-                            for (let i = startIndex; i < data.length; i++) {
-                                let t = parseFloat(data[i][1]);
-                                let h = parseFloat(data[i][2]);
-                                if (!isNaN(t) && !isNaN(h)) {
-                                    validRows.push({ temp: t, hum: h, ts: Date.parse(data[i][0]) });
-                                }
-                            }
-                            rawData[aula] = validRows;
-                        } catch(e) { console.error("Error", file.name, e); }
-                        
-                        count++;
-                        if (count === files.length) {
-                            logEl.innerHTML = "¡Archivos procesados correctamente!";
-                            finalizeProcessing();
-                        }
-                    }
-                });
-            });
-        }
+Datos
 
-        function calculateHeatIndex(t, rh) {
-            let tf = t * 9/5 + 32;
-            if (tf < 80) return t; // Bajo 26.7C, T = HI
-            let hi = -42.379 + 2.04901523*tf + 10.14333127*rh - 0.22475541*tf*rh - 0.00683783*tf*tf - 0.05481717*rh*rh + 0.00122874*tf*tf*rh + 0.00085282*tf*rh*rh - 0.00000199*tf*tf*rh*rh;
-            return (hi - 32) * 5/9;
-        }
+</button>
 
-        function finalizeProcessing() {
-            // Habilitar pestañas
-            ['informe', 'dashboard'].forEach(id => {
-                const btn = document.getElementById('btn-' + id);
-                btn.classList.replace('bg-gray-200', 'bg-emerald-600');
-                btn.classList.add('text-white');
-                btn.classList.remove('cursor-not-allowed', 'text-gray-500');
-            });
+<button
+id="btn-informe"
+class="tab-button"
+disabled
+onclick="openTab('informe')">
 
-            const tbody = document.getElementById('informe-tbody');
-            const mapa = document.getElementById('lista-mapa');
-            tbody.innerHTML = '';
-            mapa.innerHTML = '';
-            let stats = [];
+Informe
 
-            for (const aula in rawData) {
-                let rows = rawData[aula];
-                let eta = 0, tMax = -Infinity, stValues = [];
-                
-                rows.forEach(r => {
-                    if (r.temp > 27) eta += (r.temp - 27) * (1/60); 
-                    if (r.temp > tMax) tMax = r.temp;
-                    let st = calculateHeatIndex(r.temp, r.hum);
-                    stValues.push(st);
-                });
+</button>
 
-                let stMin = Math.min(...stValues);
-                let stMax = Math.max(...stValues);
-                let stMed = stValues.reduce((a,b)=>a+b, 0) / stValues.length;
+<button
+id="btn-dashboard"
+class="tab-button"
+disabled
+onclick="openTab('dashboard')">
 
-                stats.push({ aula, eta, tMax, stMin, stMed, stMax });
+Dashboard
 
-                // Render Tabla
-                tbody.innerHTML += `
-                    <tr class="text-center">
-                        <td class="p-2 border font-bold">${aula}</td>
-                        <td class="p-2 border">${eta.toFixed(2)}</td>
-                        <td class="p-2 border font-bold text-red-600">${tMax.toFixed(1)}</td>
-                        <td class="p-2 border text-blue-600">${stMin.toFixed(1)}</td>
-                        <td class="p-2 border text-slate-600">${stMed.toFixed(1)}</td>
-                        <td class="p-2 border text-red-600 font-bold">${stMax.toFixed(1)}</td>
-                    </tr>`;
+</button>
 
-                // Render Mapa Riesgo
-                let color = stMax < 27 ? 'bg-gray-200' : (stMax < 32 ? 'bg-orange-300' : 'bg-red-500 text-white');
-                mapa.innerHTML += `<div class="${color} p-2 border flex justify-between"><span>${aula}</span><span>${stMax.toFixed(1)}°C</span></div>`;
-            }
+</div>
 
-            new Chart(document.getElementById('chartETA'), {
-                type: 'bar',
-                data: { labels: stats.map(s=>s.aula), datasets: [{ label: 'ETA27', data: stats.map(s=>s.eta), backgroundColor: '#dc2626' }] },
-                options: { maintainAspectRatio: false }
-            });
-        }
+</div>
 
-        function openTab(id) {
-            if (document.getElementById('btn-' + id)?.classList.contains('cursor-not-allowed')) return;
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.getElementById('tab-' + id).classList.add('active');
-        }
-    </script>
+</div>
+
+</nav>
+
+<main class="max-w-7xl mx-auto p-4 md:p-8">
+
+<!-- IMPORTAR -->
+
+<section
+id="tab-importar"
+class="tab-content active">
+
+<div class="card">
+
+<h2 class="section-title">
+
+Carga de archivos CSV
+
+</h2>
+
+<p class="mb-4 text-slate-600">
+
+Seleccione uno o varios archivos CSV exportados por los sensores.
+
+La aplicación detectará automáticamente el intervalo de muestreo,
+identificará huecos de datos y evaluará el cumplimiento del RD 486/1997.
+
+</p>
+
+<div
+id="drop-zone"
+class="drop-zone">
+
+<p>
+
+Arrastre aquí los archivos CSV o haga clic para seleccionarlos
+
+</p>
+
+<input
+type="file"
+id="file-input"
+multiple
+accept=".csv"
+class="hidden">
+
+</div>
+
+<div
+id="processing-status"
+class="hidden mt-6">
+
+Procesando datos...
+
+</div>
+
+<div
+id="results-summary"
+class="hidden mt-6">
+
+<h3 class="font-bold text-lg mb-2">
+
+Resumen
+
+</h3>
+
+<ul id="summary-list"></ul>
+
+</div>
+
+</div>
+
+</section>
+
+<!-- INFORME -->
+
+<section
+id="tab-informe"
+class="tab-content">
+
+<div class="card">
+
+<div class="flex justify-between items-center mb-4">
+
+<h2 class="section-title">
+
+Informe RD 486/1997
+
+</h2>
+
+<button
+onclick="exportToPDF('tab-informe','Informe_RD486')"
+class="btn-export">
+
+Exportar PDF
+
+</button>
+
+</div>
+
+<div class="overflow-x-auto">
+
+<table
+class="min-w-full border">
+
+<thead>
+
+<tr>
+
+<th>Aula</th>
+
+<th>T media</th>
+
+<th>T máx</th>
+
+<th>Horas >27</th>
+
+<th>ETA27</th>
+
+<th>HR media</th>
+
+<th>HR mín</th>
+
+<th>HR máx</th>
+
+<th>% HR fuera</th>
+
+<th>RD486</th>
+
+</tr>
+
+</thead>
+
+<tbody id="informe-tbody">
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</section>
+
+<!-- DASHBOARD -->
+
+<section
+id="tab-dashboard"
+class="tab-content">
+
+<div class="card">
+
+<div class="flex justify-between items-center mb-4">
+
+<h2 class="section-title">
+
+Dashboard
+
+</h2>
+
+<button
+onclick="exportToPDF('tab-dashboard','Dashboard_RD486')"
+class="btn-export">
+
+Exportar PDF
+
+</button>
+
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+<div class="chart-card">
+
+<h3>
+
+ETA27
+
+</h3>
+
+<canvas id="chartETA"></canvas>
+
+</div>
+
+<div class="chart-card">
+
+<h3>
+
+Horas >27°C
+
+</h3>
+
+<canvas id="chartHoras27"></canvas>
+
+</div>
+
+<div class="chart-card lg:col-span-2">
+
+<h3>
+
+Porcentaje de humedad fuera de rango
+
+</h3>
+
+<canvas id="chartHR"></canvas>
+
+</div>
+
+</div>
+
+<div class="mt-8">
+
+<h3 class="font-bold text-lg mb-4">
+
+Evolución temporal
+
+</h3>
+
+<div class="line-chart-container">
+
+<canvas id="chartEvolution"></canvas>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+</main>
+
+<script src="js/parser.js"></script>
+<script src="js/calculations.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/pdf.js"></script>
+<script src="js/app.js"></script>
+
 </body>
 </html>
