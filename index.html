@@ -3,97 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agente Termohigrométrico - IES Renaturalización</title>
+    <title>Agente Clima IES - V3 (Estable)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    
     <style>
-        body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: #f8fafc; }
-        .chart-container { position: relative; height: 350px; width: 100%; }
+        body { font-family: sans-serif; background-color: #f8fafc; }
         .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .drop-zone { border: 2px dashed #cbd5e1; transition: all 0.2s ease; }
-        .drop-zone.dragover { border-color: #10b981; background-color: #ecfdf5; }
-        .heatmap-grid { display: grid; grid-template-columns: 60px repeat(24, 1fr); gap: 2px; }
-        .heatmap-cell { height: 24px; border-radius: 2px; }
+        .tab-content.active { display: block; }
+        .chart-container { height: 300px; }
+        .heatmap-cell { width: 20px; height: 20px; border-radius: 2px; }
     </style>
 </head>
-<body class="text-slate-800 h-screen flex flex-col overflow-hidden">
+<body class="p-4 md:p-8">
 
-    <nav class="bg-slate-900 text-white shadow-lg shrink-0">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center gap-3">
-                    <span class="font-bold text-xl text-emerald-400">Agente Clima IES</span>
-                </div>
-                <div class="flex space-x-1 py-3">
-                    <button onclick="openTab('importar')" id="btn-importar" class="px-4 py-2 rounded-md bg-emerald-600 text-white shadow">1. Cargar Datos</button>
-                    <button onclick="openTab('informe')" id="btn-informe" class="px-4 py-2 rounded-md text-slate-300 hover:bg-slate-700 disabled:opacity-50" disabled>2. Informe</button>
-                    <button onclick="openTab('dashboard')" id="btn-dashboard" class="px-4 py-2 rounded-md text-slate-300 hover:bg-slate-700 disabled:opacity-50" disabled>3. Dashboard</button>
+    <div class="max-w-6xl mx-auto space-y-8">
+        <nav class="flex gap-4 p-4 bg-white rounded-lg shadow-sm border">
+            <button onclick="openTab('importar')" class="px-4 py-2 bg-emerald-600 text-white rounded font-bold">1. Datos</button>
+            <button onclick="openTab('informe')" id="btn-informe" class="px-4 py-2 bg-gray-200 rounded text-gray-500 cursor-not-allowed">2. Informe</button>
+            <button onclick="openTab('dashboard')" id="btn-dashboard" class="px-4 py-2 bg-gray-200 rounded text-gray-500 cursor-not-allowed">3. Dashboard</button>
+        </nav>
+
+        <!-- Pestaña 1: Importación -->
+        <section id="tab-importar" class="tab-content active bg-white p-8 rounded-lg shadow-md text-center">
+            <h2 class="text-2xl font-bold mb-4">Cargar archivos CSV</h2>
+            <div id="drop-zone" class="border-2 border-dashed p-12 cursor-pointer border-gray-300 hover:border-emerald-500 transition-colors">
+                <p>Haz clic para seleccionar o arrastra archivos CSV</p>
+                <input type="file" id="file-input" multiple accept=".csv" class="hidden">
+            </div>
+            <div id="log" class="mt-4 text-sm text-slate-500 font-mono"></div>
+        </section>
+
+        <!-- Pestaña 2: Informe -->
+        <section id="tab-informe" class="tab-content bg-white p-8 rounded-lg shadow-md">
+            <h2 class="text-2xl font-bold mb-6">Resumen de Resultados</h2>
+            <table class="min-w-full text-sm border-collapse border">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="p-2 border">Aula</th>
+                        <th class="p-2 border">ETA27</th>
+                        <th class="p-2 border">T. Máx</th>
+                        <th class="p-2 border">ST Mín</th>
+                        <th class="p-2 border">ST Med</th>
+                        <th class="p-2 border">ST Máx</th>
+                    </tr>
+                </thead>
+                <tbody id="informe-tbody"></tbody>
+            </table>
+        </section>
+
+        <!-- Pestaña 3: Dashboard -->
+        <section id="tab-dashboard" class="tab-content bg-white p-8 rounded-lg shadow-md space-y-8">
+            <h2 class="text-2xl font-bold">Dashboard</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="chart-container"><canvas id="chartETA"></canvas></div>
+                <div id="mapaRiesgo" class="p-4 border rounded">
+                    <h3 class="font-bold mb-2">Mapa Riesgo ISGlobal (ST Máx)</h3>
+                    <div id="lista-mapa" class="space-y-1"></div>
                 </div>
             </div>
-        </div>
-    </nav>
-
-    <main class="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-50">
-        <div class="max-w-7xl mx-auto">
-            
-            <!-- Importación -->
-            <section id="tab-importar" class="tab-content active bg-white rounded-xl shadow-md p-8 text-center">
-                <h2 class="text-2xl font-bold mb-4">Cargar archivos CSV</h2>
-                <div id="drop-zone" class="drop-zone p-12 cursor-pointer max-w-2xl mx-auto rounded-xl">
-                    <p>Arrastra archivos CSV aquí</p>
-                    <input type="file" id="file-input" multiple accept=".csv" class="hidden">
-                </div>
-                <div id="log" class="mt-4 text-sm text-slate-500"></div>
-            </section>
-
-            <!-- Informe -->
-            <section id="tab-informe" class="tab-content bg-white rounded-xl shadow-md p-8">
-                <button onclick="exportToPDF('tab-informe', 'Informe_Tecnico')" class="bg-red-600 text-white px-4 py-2 rounded mb-4">Exportar PDF</button>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full border-collapse border" id="informe-table">
-                        <thead class="bg-slate-100">
-                            <tr>
-                                <th class="p-2 border">Aula</th>
-                                <th class="p-2 border">ETA27</th>
-                                <th class="p-2 border">ST Mín</th>
-                                <th class="p-2 border">ST Med</th>
-                                <th class="p-2 border">ST Máx</th>
-                            </tr>
-                        </thead>
-                        <tbody id="informe-tbody"></tbody>
-                    </table>
-                </div>
-            </section>
-
-            <!-- Dashboard -->
-            <section id="tab-dashboard" class="tab-content bg-white rounded-xl shadow-md p-8">
-                <button onclick="exportToPDF('tab-dashboard', 'Dashboard')" class="bg-red-600 text-white px-4 py-2 rounded mb-4">Exportar PDF</button>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="chart-container"><canvas id="chartETA"></canvas></div>
-                    <div id="mapaRiesgo" class="p-4 border rounded"></div>
-                </div>
-            </section>
-        </div>
-    </main>
+        </section>
+    </div>
 
     <script>
-        let rawData = {};
-        let processedStats = [];
+        let rawData = {}; 
 
-        function calculateHeatIndex(t, rh) {
-            let tf = t * 9/5 + 32;
-            if (tf < 80) return t;
-            let hi = -42.379 + 2.04901523*tf + 10.14333127*rh - 0.22475541*tf*rh - 0.00683783*tf*tf - 0.05481717*rh*rh + 0.00122874*tf*tf*rh + 0.00085282*tf*rh*rh - 0.00000199*tf*tf*rh*rh;
-            return (hi - 32) * 5/9;
-        }
+        // 1. Importación Robusta
+        document.getElementById('drop-zone').addEventListener('click', () => document.getElementById('file-input').click());
+        document.getElementById('file-input').addEventListener('change', (e) => handleFiles(e.target.files));
 
-        // Función robusta de lectura de archivos
         function handleFiles(files) {
             const logEl = document.getElementById('log');
             logEl.innerHTML = "Procesando...";
@@ -103,53 +81,102 @@
             Array.from(files).forEach(file => {
                 Papa.parse(file, {
                     skipEmptyLines: true,
+                    dynamicTyping: true, // Esto ayuda a convertir "25.5" en 25.5 automáticamente
                     complete: (results) => {
                         try {
                             const data = results.data;
                             const aula = file.name.split('.')[0];
                             let validRows = [];
                             
-                            // Saltar cabecera si el primer valor no es fecha válida
-                            let startIndex = isNaN(Date.parse(data[0][0])) ? 1 : 0;
+                            // Detección automática de cabecera: si la 2a columna no es número, saltar fila 0
+                            let startIndex = (typeof data[0][1] === 'number') ? 0 : 1;
                             
                             for (let i = startIndex; i < data.length; i++) {
-                                let row = data[i];
-                                let t = parseFloat(row[1]);
-                                let h = parseFloat(row[2]);
+                                let t = parseFloat(data[i][1]);
+                                let h = parseFloat(data[i][2]);
                                 if (!isNaN(t) && !isNaN(h)) {
-                                    validRows.push({ temp: t, hum: h, ts: Date.parse(row[0]) });
+                                    validRows.push({ temp: t, hum: h, ts: Date.parse(data[i][0]) });
                                 }
                             }
                             rawData[aula] = validRows;
-                        } catch(e) { console.error("Error en archivo", file.name, e); }
+                        } catch(e) { console.error("Error", file.name, e); }
                         
                         count++;
                         if (count === files.length) {
                             logEl.innerHTML = "¡Archivos procesados correctamente!";
                             finalizeProcessing();
                         }
-                    },
-                    error: (err) => { logEl.innerHTML = "Error crítico: " + err.message; }
+                    }
                 });
             });
         }
 
-        function finalizeProcessing() {
-            // Lógica simplificada para mostrar que funciona
-            document.getElementById('btn-informe').disabled = false;
-            document.getElementById('btn-dashboard').disabled = false;
-            // ... (resto de la lógica de renderizado igual que antes)
+        function calculateHeatIndex(t, rh) {
+            let tf = t * 9/5 + 32;
+            if (tf < 80) return t; // Bajo 26.7C, T = HI
+            let hi = -42.379 + 2.04901523*tf + 10.14333127*rh - 0.22475541*tf*rh - 0.00683783*tf*tf - 0.05481717*rh*rh + 0.00122874*tf*tf*rh + 0.00085282*tf*rh*rh - 0.00000199*tf*tf*rh*rh;
+            return (hi - 32) * 5/9;
         }
 
-        document.getElementById('file-input').addEventListener('change', (e) => handleFiles(e.target.files));
-        
+        function finalizeProcessing() {
+            // Habilitar pestañas
+            ['informe', 'dashboard'].forEach(id => {
+                const btn = document.getElementById('btn-' + id);
+                btn.classList.replace('bg-gray-200', 'bg-emerald-600');
+                btn.classList.add('text-white');
+                btn.classList.remove('cursor-not-allowed', 'text-gray-500');
+            });
+
+            const tbody = document.getElementById('informe-tbody');
+            const mapa = document.getElementById('lista-mapa');
+            tbody.innerHTML = '';
+            mapa.innerHTML = '';
+            let stats = [];
+
+            for (const aula in rawData) {
+                let rows = rawData[aula];
+                let eta = 0, tMax = -Infinity, stValues = [];
+                
+                rows.forEach(r => {
+                    if (r.temp > 27) eta += (r.temp - 27) * (1/60); 
+                    if (r.temp > tMax) tMax = r.temp;
+                    let st = calculateHeatIndex(r.temp, r.hum);
+                    stValues.push(st);
+                });
+
+                let stMin = Math.min(...stValues);
+                let stMax = Math.max(...stValues);
+                let stMed = stValues.reduce((a,b)=>a+b, 0) / stValues.length;
+
+                stats.push({ aula, eta, tMax, stMin, stMed, stMax });
+
+                // Render Tabla
+                tbody.innerHTML += `
+                    <tr class="text-center">
+                        <td class="p-2 border font-bold">${aula}</td>
+                        <td class="p-2 border">${eta.toFixed(2)}</td>
+                        <td class="p-2 border font-bold text-red-600">${tMax.toFixed(1)}</td>
+                        <td class="p-2 border text-blue-600">${stMin.toFixed(1)}</td>
+                        <td class="p-2 border text-slate-600">${stMed.toFixed(1)}</td>
+                        <td class="p-2 border text-red-600 font-bold">${stMax.toFixed(1)}</td>
+                    </tr>`;
+
+                // Render Mapa Riesgo
+                let color = stMax < 27 ? 'bg-gray-200' : (stMax < 32 ? 'bg-orange-300' : 'bg-red-500 text-white');
+                mapa.innerHTML += `<div class="${color} p-2 border flex justify-between"><span>${aula}</span><span>${stMax.toFixed(1)}°C</span></div>`;
+            }
+
+            new Chart(document.getElementById('chartETA'), {
+                type: 'bar',
+                data: { labels: stats.map(s=>s.aula), datasets: [{ label: 'ETA27', data: stats.map(s=>s.eta), backgroundColor: '#dc2626' }] },
+                options: { maintainAspectRatio: false }
+            });
+        }
+
         function openTab(id) {
+            if (document.getElementById('btn-' + id)?.classList.contains('cursor-not-allowed')) return;
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.getElementById('tab-' + id).classList.add('active');
-        }
-
-        function exportToPDF(id, name) {
-            html2pdf().from(document.getElementById(id)).save(name + '.pdf');
         }
     </script>
 </body>
