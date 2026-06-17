@@ -1,32 +1,8 @@
-// =====================================================
-// Agente Clima IES v1.0
-// charts.js
-// Gráficos y dashboard
-// =====================================================
-
 let chartETA = null;
 let chartHoras27 = null;
+let chartHoras17 = null;
 let chartHR = null;
 let chartEvolution = null;
-
-// -----------------------------------------------------
-// Crear todos los gráficos
-// -----------------------------------------------------
-
-function createCharts() {
-
-    createETAChart();
-
-    createHoras27Chart();
-
-    createHRChart();
-
-    createEvolutionChart();
-}
-
-// -----------------------------------------------------
-// Destruir gráfico previo
-// -----------------------------------------------------
 
 function destroyChart(chart) {
 
@@ -35,18 +11,31 @@ function destroyChart(chart) {
     }
 }
 
-// -----------------------------------------------------
-// ETA27
-// -----------------------------------------------------
+function createCharts() {
+
+    createETAChart();
+
+    createHoras27Chart();
+
+    createHoras17Chart();
+
+    createHRChart();
+
+    createEvolutionChart();
+}
+
+function getValidStats() {
+
+    return processedStats.filter(
+        s => s.estado === "Evaluable"
+    );
+}
 
 function createETAChart() {
 
     destroyChart(chartETA);
 
-    const datos =
-        processedStats.filter(
-            s => s.estado === "Evaluable"
-        );
+    const datos = getValidStats();
 
     chartETA = new Chart(
 
@@ -62,50 +51,30 @@ function createETAChart() {
                         s => s.aula
                     ),
 
-                datasets: [
+                datasets: [{
+                    label: "ETA27",
 
-                    {
-                        label: "ETA27 (°C·h)",
-
-                        data:
-                            datos.map(
-                                s => s.eta27
-                            )
-                    }
-                ]
-            },
-
-            options: {
-
-                responsive: true,
-
-                plugins: {
-
-                    legend: {
-                        display: true
-                    }
-                }
+                    data:
+                        datos.map(
+                            s => s.eta27
+                        )
+                }]
             }
         }
     );
 }
 
-// -----------------------------------------------------
-// Horas > 27°C
-// -----------------------------------------------------
-
 function createHoras27Chart() {
 
     destroyChart(chartHoras27);
 
-    const datos =
-        processedStats.filter(
-            s => s.estado === "Evaluable"
-        );
+    const datos = getValidStats();
 
     chartHoras27 = new Chart(
 
-        document.getElementById("chartHoras27"),
+        document.getElementById(
+            "chartHoras27"
+        ),
 
         {
             type: "bar",
@@ -117,46 +86,63 @@ function createHoras27Chart() {
                         s => s.aula
                     ),
 
-                datasets: [
+                datasets: [{
 
-                    {
-                        label: "Horas >27°C",
+                    label:
+                        "Horas >27°C",
 
-                        data:
-                            datos.map(
-                                s => s.horasMas27
-                            )
-                    }
-                ]
-            },
-
-            options: {
-
-                responsive: true,
-
-                plugins: {
-
-                    legend: {
-                        display: true
-                    }
-                }
+                    data:
+                        datos.map(
+                            s => s.horasMas27
+                        )
+                }]
             }
         }
     );
 }
 
-// -----------------------------------------------------
-// Humedad fuera de rango
-// -----------------------------------------------------
+function createHoras17Chart() {
+
+    destroyChart(chartHoras17);
+
+    const datos = getValidStats();
+
+    chartHoras17 = new Chart(
+
+        document.getElementById(
+            "chartHoras17"
+        ),
+
+        {
+            type: "bar",
+
+            data: {
+
+                labels:
+                    datos.map(
+                        s => s.aula
+                    ),
+
+                datasets: [{
+
+                    label:
+                        "Horas <17°C",
+
+                    data:
+                        datos.map(
+                            s => s.horasMenos17
+                        )
+                }]
+            }
+        }
+    );
+}
 
 function createHRChart() {
 
     destroyChart(chartHR);
 
-    const datos =
-        processedStats.filter(
-            s => s.estado === "Evaluable"
-        );
+    const datos = getValidStats();
 
     chartHR = new Chart(
 
@@ -172,31 +158,20 @@ function createHRChart() {
                         s => s.aula
                     ),
 
-                datasets: [
+                datasets: [{
 
-                    {
-                        label:
-                            "% HR fuera de rango",
+                    label:
+                        "% HR fuera rango",
 
-                        data:
-                            datos.map(
-                                s =>
-                                s.porcentajeHRFueraRango
-                            )
-                    }
-                ]
+                    data:
+                        datos.map(
+                            s =>
+                            s.porcentajeHRFueraRango
+                        )
+                }]
             },
 
             options: {
-
-                responsive: true,
-
-                plugins: {
-
-                    legend: {
-                        display: true
-                    }
-                },
 
                 scales: {
 
@@ -211,10 +186,6 @@ function createHRChart() {
         }
     );
 }
-
-// -----------------------------------------------------
-// Evolución temporal
-// -----------------------------------------------------
 
 function createEvolutionChart() {
 
@@ -232,12 +203,12 @@ function createEvolutionChart() {
 
                 data:
 
-                    registros.map(
-                        r => ({
-                            x: r.timestamp,
-                            y: r.temp
-                        })
-                    ),
+                registros.map(
+                    r => ({
+                        x: r.timestamp,
+                        y: r.temp
+                    })
+                ),
 
                 tension: 0.2
             });
@@ -254,7 +225,6 @@ function createEvolutionChart() {
             type: "line",
 
             data: {
-
                 datasets
             },
 
@@ -262,41 +232,11 @@ function createEvolutionChart() {
 
                 responsive: true,
 
-                interaction: {
-
-                    mode: "nearest",
-
-                    intersect: false
-                },
-
                 scales: {
 
                     x: {
 
-                        type: "time",
-
-                        time: {
-
-                            tooltipFormat:
-                                "dd/MM/yyyy HH:mm"
-                        },
-
-                        title: {
-
-                            display: true,
-
-                            text: "Fecha"
-                        }
-                    },
-
-                    y: {
-
-                        title: {
-
-                            display: true,
-
-                            text: "Temperatura (°C)"
-                        }
+                        type: "time"
                     }
                 }
             }
