@@ -8,7 +8,7 @@ let rawData = {};
 let processedStats = [];
 
 // -----------------------------------------------------
-// Configurar zona de carga
+// Configuración de la interfaz
 // -----------------------------------------------------
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -19,9 +19,19 @@ document.addEventListener("DOMContentLoaded", () => {
     const fileInput =
         document.getElementById("file-input");
 
+    // -----------------------------------------
+    // Selección mediante clic
+    // -----------------------------------------
+
     dropZone.addEventListener("click", () => {
+
         fileInput.click();
+
     });
+
+    // -----------------------------------------
+    // Selección mediante explorador
+    // -----------------------------------------
 
     fileInput.addEventListener("change", (e) => {
 
@@ -33,10 +43,54 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    // -----------------------------------------
+    // Drag & Drop
+    // -----------------------------------------
+
+    dropZone.addEventListener(
+        "dragover",
+        (e) => {
+
+            e.preventDefault();
+
+            dropZone.classList.add(
+                "drag-active"
+            );
+        }
+    );
+
+    dropZone.addEventListener(
+        "dragleave",
+        () => {
+
+            dropZone.classList.remove(
+                "drag-active"
+            );
+        }
+    );
+
+    dropZone.addEventListener(
+        "drop",
+        (e) => {
+
+            e.preventDefault();
+
+            dropZone.classList.remove(
+                "drag-active"
+            );
+
+            const files =
+                Array.from(
+                    e.dataTransfer.files
+                );
+
+            processFiles(files);
+        }
+    );
 });
 
 // -----------------------------------------------------
-// Procesar múltiples archivos
+// Procesamiento de archivos
 // -----------------------------------------------------
 
 async function processFiles(files) {
@@ -46,11 +100,12 @@ async function processFiles(files) {
         .classList.remove("hidden");
 
     rawData = {};
+
     processedStats = [];
 
     let procesados = 0;
 
-    for (const file of files) {
+    files.forEach(file => {
 
         Papa.parse(file, {
 
@@ -58,30 +113,60 @@ async function processFiles(files) {
 
             complete: function(results) {
 
-                const aula =
-                    file.name.split("_")[0];
+                try {
 
-                const registros =
-                    parseCSVData(results.data);
+                    const aula =
+                        file.name.split("_")[0];
 
-                rawData[aula] =
-                    registros;
+                    const registros =
+                        parseCSVData(
+                            results.data
+                        );
+
+                    rawData[aula] =
+                        registros;
+
+                } catch (error) {
+
+                    console.error(
+                        "Error procesando archivo:",
+                        file.name,
+                        error
+                    );
+                }
 
                 procesados++;
 
-                if (procesados === files.length) {
+                if (
+                    procesados === files.length
+                ) {
+
+                    finishProcessing();
+                }
+            },
+
+            error: function(error) {
+
+                console.error(
+                    "Error leyendo CSV:",
+                    error
+                );
+
+                procesados++;
+
+                if (
+                    procesados === files.length
+                ) {
 
                     finishProcessing();
                 }
             }
-
         });
-
-    }
+    });
 }
 
 // -----------------------------------------------------
-// Convertir CSV a registros válidos
+// Conversión CSV → registros
 // -----------------------------------------------------
 
 function parseCSVData(rows) {
@@ -90,12 +175,15 @@ function parseCSVData(rows) {
 
     rows.forEach(row => {
 
-        if (!row || row.length < 3) {
+        if (
+            !row ||
+            row.length < 3
+        ) {
             return;
         }
 
         const fechaTexto =
-            row[0]?.trim();
+            String(row[0]).trim();
 
         const temperatura =
             parseFloat(row[1]);
@@ -106,8 +194,11 @@ function parseCSVData(rows) {
         const fecha =
             new Date(fechaTexto);
 
+        // Ignorar cabeceras
         if (
-            isNaN(fecha.getTime())
+            isNaN(
+                fecha.getTime()
+            )
         ) {
             return;
         }
@@ -127,21 +218,21 @@ function parseCSVData(rows) {
             temp: temperatura,
 
             hum: humedad
-
         });
-
     });
 
     registros.sort(
+
         (a, b) =>
-        a.timestamp - b.timestamp
+            a.timestamp -
+            b.timestamp
     );
 
     return registros;
 }
 
 // -----------------------------------------------------
-// Finalizar procesamiento
+// Finalización
 // -----------------------------------------------------
 
 function finishProcessing() {
@@ -163,10 +254,19 @@ function finishProcessing() {
     }
 
     processedStats.sort(
+
         (a, b) =>
-        (b.eta27 || 0)
-        -
-        (a.eta27 || 0)
+
+            (b.eta27 || 0)
+
+            -
+
+            (a.eta27 || 0)
+    );
+
+    console.log(
+        "Aulas procesadas:",
+        processedStats
     );
 
     updateSummary();
@@ -176,18 +276,26 @@ function finishProcessing() {
     createCharts();
 
     document
-        .getElementById("processing-status")
+        .getElementById(
+            "processing-status"
+        )
         .classList.add("hidden");
 
     document
-        .getElementById("results-summary")
+        .getElementById(
+            "results-summary"
+        )
         .classList.remove("hidden");
 
     document
-        .getElementById("btn-informe")
+        .getElementById(
+            "btn-informe"
+        )
         .disabled = false;
 
     document
-        .getElementById("btn-dashboard")
+        .getElementById(
+            "btn-dashboard"
+        )
         .disabled = false;
 }
