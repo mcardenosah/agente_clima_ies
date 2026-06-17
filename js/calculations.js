@@ -23,17 +23,34 @@ function calculateMedian(values) {
 // Clasificación de severidad
 // -----------------------------------------------------
 
-function calculateSeverity(eta27, porcentajeHRFuera) {
+function calculateSeverity(
+    eta27,
+    porcentajeBajo17,
+    porcentajeHRFuera
+) {
 
-    if (eta27 === 0 && porcentajeHRFuera === 0) {
+    const impacto =
+        porcentajeBajo17 +
+        porcentajeHRFuera;
+
+    if (
+        eta27 === 0 &&
+        impacto === 0
+    ) {
         return "Verde";
     }
 
-    if (eta27 < 5 && porcentajeHRFuera < 5) {
+    if (
+        eta27 < 5 &&
+        impacto < 5
+    ) {
         return "Amarillo";
     }
 
-    if (eta27 < 20 && porcentajeHRFuera < 20) {
+    if (
+        eta27 < 20 &&
+        impacto < 20
+    ) {
         return "Naranja";
     }
 
@@ -41,10 +58,13 @@ function calculateSeverity(eta27, porcentajeHRFuera) {
 }
 
 // -----------------------------------------------------
-// Procesamiento principal por aula
+// Procesamiento principal
 // -----------------------------------------------------
 
-function processClassroomData(aula, registros) {
+function processClassroomData(
+    aula,
+    registros
+) {
 
     if (!registros || registros.length < 2) {
 
@@ -55,16 +75,22 @@ function processClassroomData(aula, registros) {
     }
 
     // =====================================
-    // Detectar intervalo típico de muestreo
+    // Intervalo típico
     // =====================================
 
     const intervalos = [];
 
-    for (let i = 0; i < registros.length - 1; i++) {
+    for (
+        let i = 0;
+        i < registros.length - 1;
+        i++
+    ) {
 
         const dtMin =
-            (registros[i + 1].timestamp -
-             registros[i].timestamp)
+            (
+                registros[i + 1].timestamp -
+                registros[i].timestamp
+            )
             /
             (1000 * 60);
 
@@ -80,10 +106,12 @@ function processClassroomData(aula, registros) {
         intervaloMediano * 3;
 
     // =====================================
-    // Variables estadísticas
+    // Variables
     // =====================================
 
     let horasEvaluadas = 0;
+
+    let horasMenos17 = 0;
 
     let horasMas27 = 0;
 
@@ -101,21 +129,27 @@ function processClassroomData(aula, registros) {
     let hrMax = -Infinity;
     let hrSum = 0;
 
-    let intervalosValidos = 0;
-
     // =====================================
     // Recorrido temporal
     // =====================================
 
-    for (let i = 0; i < registros.length - 1; i++) {
+    for (
+        let i = 0;
+        i < registros.length - 1;
+        i++
+    ) {
 
-        const actual = registros[i];
+        const actual =
+            registros[i];
 
-        const siguiente = registros[i + 1];
+        const siguiente =
+            registros[i + 1];
 
         const dtMin =
-            (siguiente.timestamp -
-             actual.timestamp)
+            (
+                siguiente.timestamp -
+                actual.timestamp
+            )
             /
             (1000 * 60);
 
@@ -123,41 +157,52 @@ function processClassroomData(aula, registros) {
             continue;
         }
 
-        const dtHoras = dtMin / 60;
-
-        intervalosValidos++;
+        const dtHoras =
+            dtMin / 60;
 
         horasEvaluadas += dtHoras;
 
-        // -----------------
+        // =================================
         // Temperatura
-        // -----------------
+        // =================================
+
+        if (actual.temp < 17) {
+
+            horasMenos17 += dtHoras;
+
+        }
 
         if (actual.temp > 27) {
 
             horasMas27 += dtHoras;
 
             eta27 +=
-                (actual.temp - 27)
+                (
+                    actual.temp - 27
+                )
                 *
                 dtHoras;
         }
 
-        // -----------------
+        // =================================
         // Humedad
-        // -----------------
+        // =================================
 
         if (actual.hum < 30) {
+
             horasHRBaja += dtHoras;
+
         }
 
         if (actual.hum > 70) {
+
             horasHRAlta += dtHoras;
+
         }
 
-        // -----------------
+        // =================================
         // Estadísticos
-        // -----------------
+        // =================================
 
         if (actual.temp < tMin)
             tMin = actual.temp;
@@ -172,6 +217,7 @@ function processClassroomData(aula, registros) {
             hrMax = actual.hum;
 
         tSum += actual.temp;
+
         hrSum += actual.hum;
     }
 
@@ -180,7 +226,9 @@ function processClassroomData(aula, registros) {
     // =====================================
 
     const ultimo =
-        registros[registros.length - 1];
+        registros[
+            registros.length - 1
+        ];
 
     if (ultimo.temp < tMin)
         tMin = ultimo.temp;
@@ -195,6 +243,7 @@ function processClassroomData(aula, registros) {
         hrMax = ultimo.hum;
 
     tSum += ultimo.temp;
+
     hrSum += ultimo.hum;
 
     // =====================================
@@ -211,11 +260,25 @@ function processClassroomData(aula, registros) {
     // Porcentajes
     // =====================================
 
+    const porcentajeBajo17 =
+        horasEvaluadas > 0
+            ?
+            (
+                horasMenos17 /
+                horasEvaluadas
+            )
+            *
+            100
+            :
+            0;
+
     const porcentajeSobre27 =
         horasEvaluadas > 0
             ?
-            (horasMas27 /
-                horasEvaluadas)
+            (
+                horasMas27 /
+                horasEvaluadas
+            )
             *
             100
             :
@@ -242,6 +305,8 @@ function processClassroomData(aula, registros) {
     // =====================================
 
     const cumpleTemperatura =
+        horasMenos17 === 0
+        &&
         horasMas27 === 0;
 
     const cumpleHumedad =
@@ -257,8 +322,13 @@ function processClassroomData(aula, registros) {
     const severidad =
         calculateSeverity(
             eta27,
+            porcentajeBajo17,
             porcentajeHRFueraRango
         );
+
+    // =====================================
+    // Resultado
+    // =====================================
 
     return {
 
@@ -279,6 +349,10 @@ function processClassroomData(aula, registros) {
         tMedia,
         tMax,
 
+        horasMenos17,
+
+        porcentajeBajo17,
+
         horasMas27,
 
         porcentajeSobre27,
@@ -290,12 +364,15 @@ function processClassroomData(aula, registros) {
         hrMax,
 
         horasHRBaja,
+
         horasHRAlta,
 
         porcentajeHRFueraRango,
 
         cumpleTemperatura,
+
         cumpleHumedad,
+
         cumpleRD,
 
         severidad
