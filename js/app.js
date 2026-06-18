@@ -1,21 +1,25 @@
 // =====================================================
-// Agente Clima IES v1.0
-// app.js
-// Interfaz y presentación
-// =====================================================
-
 function openTab(tabId) {
 
-    document
-        .querySelectorAll(".tab-content")
-        .forEach(tab => {
+```
+document
+    .querySelectorAll(".tab-content")
+    .forEach(tab => {
 
-            tab.classList.remove("active");
-        });
+        tab.classList.remove(
+            "active"
+        );
+    });
 
-    document
-        .getElementById(`tab-${tabId}`)
-        .classList.add("active");
+document
+    .getElementById(
+        `tab-${tabId}`
+    )
+    .classList.add(
+        "active"
+    );
+```
+
 }
 
 // -----------------------------------------------------
@@ -24,23 +28,29 @@ function openTab(tabId) {
 
 function updateSummary() {
 
-    const evaluables =
-        processedStats.filter(
-            s => s.estado === "Evaluable"
-        );
+```
+const evaluables =
+    processedStats.filter(
+        s =>
+        s.estado === "Evaluable"
+    );
 
-    const cumplenRD =
-        evaluables.filter(
-            s => s.cumpleRD
-        ).length;
+const cumplenRD =
+    evaluables.filter(
+        s =>
+        s.cumpleRD
+    ).length;
 
-    const incumplenRD =
-        evaluables.length -
-        cumplenRD;
+const incumplenRD =
+    evaluables.length -
+    cumplenRD;
 
-    document.getElementById(
+document
+    .getElementById(
         "summary-list"
-    ).innerHTML = `
+    )
+    .innerHTML = `
+```
 
 <li>
 <strong>Aulas evaluadas:</strong>
@@ -66,28 +76,30 @@ ${incumplenRD}
 
 function populateTable() {
 
-    const tbody =
-        document.getElementById(
-            "informe-tbody"
-        );
+```
+const tbody =
+    document.getElementById(
+        "informe-tbody"
+    );
 
-    tbody.innerHTML = "";
+tbody.innerHTML = "";
 
-    processedStats.forEach(stat => {
+processedStats.forEach(stat => {
 
-        if (
-            stat.estado !==
-            "Evaluable"
-        ) {
-            return;
-        }
+    if (
+        stat.estado !==
+        "Evaluable"
+    ) {
+        return;
+    }
 
-        const cumple =
-            stat.cumpleRD
-            ? "✔"
-            : "✘";
+    const cumple =
+        stat.cumpleRD
+        ? "✔"
+        : "✘";
 
-        tbody.innerHTML += `
+    tbody.innerHTML += `
+```
 
 <tr>
 
@@ -111,6 +123,12 @@ function populateTable() {
 
 <td>${stat.porcentajeHRFueraRango.toFixed(1)}%</td>
 
+<td>${stat.diMedia.toFixed(1)}</td>
+
+<td>${stat.diMax.toFixed(1)}</td>
+
+<td>${stat.categoriaConfort}</td>
+
 <td>${stat.severidad}</td>
 
 <td>${cumple}</td>
@@ -118,5 +136,5 @@ function populateTable() {
 </tr>
 
 `;
-    });
+});
 }
