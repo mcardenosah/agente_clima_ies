@@ -6,7 +6,7 @@
 
 function calculateMedian(values) {
 
-```
+
 if (!values.length) return 0;
 
 const sorted = [...values].sort((a, b) => a - b);
@@ -21,7 +21,7 @@ if (sorted.length % 2 === 0) {
 }
 
 return sorted[middle];
-```
+
 
 }
 
@@ -29,24 +29,20 @@ return sorted[middle];
 // Índice de Disconfort de Thom
 // -----------------------------------------------------
 
-function calculateThomIndex(
-temperatura,
-humedad
-) {
+function calculateThomIndex(temperatura, humedad) {
 
-```
+
 return (
     temperatura -
     (
         0.55 -
         0.0055 * humedad
-    )
-    *
+    ) *
     (
         temperatura - 14.5
     )
 );
-```
+
 
 }
 
@@ -56,7 +52,7 @@ return (
 
 function classifyThom(di) {
 
-```
+
 if (di < 21) {
     return "Confortable";
 }
@@ -70,7 +66,7 @@ if (di < 27) {
 }
 
 return "Estrés térmico";
-```
+
 
 }
 
@@ -124,7 +120,7 @@ aula,
 registros
 ) {
 
-```
+
 if (
     !registros ||
     registros.length < 2
@@ -152,8 +148,7 @@ for (
         (
             registros[i + 1].timestamp -
             registros[i].timestamp
-        )
-        /
+        ) /
         (1000 * 60);
 
     if (dtMin > 0) {
@@ -174,13 +169,11 @@ const umbralHueco =
 let horasEvaluadas = 0;
 
 let horasMenos17 = 0;
-
 let horasMas27 = 0;
 
 let eta27 = 0;
 
 let horasHRBaja = 0;
-
 let horasHRAlta = 0;
 
 let tMin = Infinity;
@@ -215,8 +208,7 @@ for (
         (
             siguiente.timestamp -
             actual.timestamp
-        )
-        /
+        ) /
         (1000 * 60);
 
     if (dtMin > umbralHueco) {
@@ -228,14 +220,10 @@ for (
 
     horasEvaluadas += dtHoras;
 
-    // ---------------------------------
     // Temperatura
-    // ---------------------------------
 
     if (actual.temp < 17) {
-
         horasMenos17 += dtHoras;
-
     }
 
     if (actual.temp > 27) {
@@ -245,50 +233,32 @@ for (
         eta27 +=
             (
                 actual.temp - 27
-            )
-            *
+            ) *
             dtHoras;
     }
 
-    // ---------------------------------
     // Humedad
-    // ---------------------------------
 
     if (actual.hum < 30) {
-
         horasHRBaja += dtHoras;
-
     }
 
     if (actual.hum > 70) {
-
         horasHRAlta += dtHoras;
-
     }
 
-    // ---------------------------------
-    // Estadísticos T y HR
-    // ---------------------------------
+    // Estadísticos
 
-    if (actual.temp < tMin)
-        tMin = actual.temp;
+    tMin = Math.min(tMin, actual.temp);
+    tMax = Math.max(tMax, actual.temp);
 
-    if (actual.temp > tMax)
-        tMax = actual.temp;
-
-    if (actual.hum < hrMin)
-        hrMin = actual.hum;
-
-    if (actual.hum > hrMax)
-        hrMax = actual.hum;
+    hrMin = Math.min(hrMin, actual.hum);
+    hrMax = Math.max(hrMax, actual.hum);
 
     tSum += actual.temp;
-
     hrSum += actual.hum;
 
-    // ---------------------------------
     // Índice de Thom
-    // ---------------------------------
 
     const di =
         calculateThomIndex(
@@ -296,11 +266,8 @@ for (
             actual.hum
         );
 
-    if (di < diMin)
-        diMin = di;
-
-    if (di > diMax)
-        diMax = di;
+    diMin = Math.min(diMin, di);
+    diMax = Math.max(diMax, di);
 
     diSum += di;
 }
@@ -314,20 +281,13 @@ const ultimo =
         registros.length - 1
     ];
 
-if (ultimo.temp < tMin)
-    tMin = ultimo.temp;
+tMin = Math.min(tMin, ultimo.temp);
+tMax = Math.max(tMax, ultimo.temp);
 
-if (ultimo.temp > tMax)
-    tMax = ultimo.temp;
-
-if (ultimo.hum < hrMin)
-    hrMin = ultimo.hum;
-
-if (ultimo.hum > hrMax)
-    hrMax = ultimo.hum;
+hrMin = Math.min(hrMin, ultimo.hum);
+hrMax = Math.max(hrMax, ultimo.hum);
 
 tSum += ultimo.temp;
-
 hrSum += ultimo.hum;
 
 const diUltimo =
@@ -336,11 +296,8 @@ const diUltimo =
         ultimo.hum
     );
 
-if (diUltimo < diMin)
-    diMin = diUltimo;
-
-if (diUltimo > diMax)
-    diMax = diUltimo;
+diMin = Math.min(diMin, diUltimo);
+diMax = Math.max(diMax, diUltimo);
 
 diSum += diUltimo;
 
@@ -363,37 +320,24 @@ const diMedia =
 
 const porcentajeBajo17 =
     horasEvaluadas > 0
-    ?
-    (
-        horasMenos17 /
-        horasEvaluadas
-    ) * 100
-    :
-    0;
+    ? (horasMenos17 / horasEvaluadas) * 100
+    : 0;
 
 const porcentajeSobre27 =
     horasEvaluadas > 0
-    ?
-    (
-        horasMas27 /
-        horasEvaluadas
-    ) * 100
-    :
-    0;
+    ? (horasMas27 / horasEvaluadas) * 100
+    : 0;
 
 const porcentajeHRFueraRango =
     horasEvaluadas > 0
-    ?
-    (
+    ? (
         (
             horasHRBaja +
             horasHRAlta
-        )
-        /
+        ) /
         horasEvaluadas
     ) * 100
-    :
-    0;
+    : 0;
 
 // =====================================
 // Cumplimiento RD486
@@ -417,10 +361,6 @@ const severidad =
         porcentajeBajo17,
         porcentajeHRFueraRango
     );
-
-// =====================================
-// Resultado
-// =====================================
 
 return {
 
@@ -480,7 +420,6 @@ return {
 
     severidad
 };
-```
+
 
 }
-
