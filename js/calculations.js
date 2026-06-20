@@ -186,7 +186,8 @@ let hrSum = 0;
 let diMin = Infinity;
 let diMax = -Infinity;
 let diSum = 0;
-
+let horasDI24 = 0;
+let horasDI27 = 0;
 // =====================================
 // Recorrido temporal
 // =====================================
@@ -264,7 +265,13 @@ for (
             actual.temp,
             actual.hum
         );
+if (di > 24) {
+    horasDI24 += dtHoras;
+}
 
+if (di > 27) {
+    horasDI27 += dtHoras;
+}
     diMin = Math.min(diMin, di);
     diMax = Math.max(diMax, di);
 
@@ -405,7 +412,9 @@ return {
     diMedia,
 
     diMax,
+horasDI24,
 
+horasDI27,
     categoriaConfort:
         classifyThom(
             diMedia
