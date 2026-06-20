@@ -1,7 +1,7 @@
 // =====================================================
 function openTab(tabId) {
 
-```
+
 document
     .querySelectorAll(".tab-content")
     .forEach(tab => {
@@ -18,7 +18,7 @@ document
     .classList.add(
         "active"
     );
-```
+
 
 }
 
@@ -28,7 +28,7 @@ document
 
 function updateSummary() {
 
-```
+
 const evaluables =
     processedStats.filter(
         s =>
@@ -50,7 +50,7 @@ document
         "summary-list"
     )
     .innerHTML = `
-```
+
 
 <li>
 <strong>Aulas evaluadas:</strong>
@@ -76,7 +76,7 @@ ${incumplenRD}
 
 function populateTable() {
 
-```
+
 const tbody =
     document.getElementById(
         "informe-tbody"
@@ -99,7 +99,7 @@ processedStats.forEach(stat => {
         : "✘";
 
     tbody.innerHTML += `
-```
+
 
 <tr>
 
