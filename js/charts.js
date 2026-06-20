@@ -3,7 +3,8 @@ let chartHoras27 = null;
 let chartHoras17 = null;
 let chartHR = null;
 let chartEvolution = null;
-
+let chartDI = null;
+let chartVulnerability = null;
 function destroyChart(chart) {
 
     if (chart) {
@@ -12,6 +13,12 @@ function destroyChart(chart) {
 }
 
 function createCharts() {
+
+    createSummary();
+
+    createDIChart();
+
+    createVulnerabilityChart();
 
     createETAChart();
 
@@ -242,4 +249,136 @@ function createEvolutionChart() {
             }
         }
     );
+}
+function createSummary() {
+
+    const datos = getValidStats();
+
+    if (!datos.length) return;
+
+    const cumplen =
+        datos.filter(
+            s => s.cumpleRD
+        ).length;
+
+    const incumplen =
+        datos.length - cumplen;
+
+    const aulaCritica =
+        [...datos]
+        .sort(
+            (a, b) =>
+            b.eta27 - a.eta27
+        )[0];
+
+    const tempMax =
+        Math.max(
+            ...datos.map(
+                s => s.tMax
+            )
+        );
+
+    document
+        .getElementById(
+            "dashboard-summary"
+        )
+        .innerHTML = `
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div><strong>Aulas analizadas:</strong> ${datos.length}</div>
+            <div><strong>Cumplen RD486:</strong> ${cumplen}</div>
+            <div><strong>Incumplen RD486:</strong> ${incumplen}</div>
+            <div><strong>Aula más vulnerable:</strong> ${aulaCritica.aula}</div>
+            <div><strong>ETA27 máximo:</strong> ${aulaCritica.eta27.toFixed(1)}</div>
+            <div><strong>Temperatura máxima:</strong> ${tempMax.toFixed(1)} °C</div>
+        </div>
+        `;
+}
+
+function createDIChart() {
+
+    destroyChart(chartDI);
+
+    const datos = getValidStats();
+
+    chartDI = new Chart(
+
+        document.getElementById(
+            "chartDI"
+        ),
+
+        {
+            type: "bar",
+
+            data: {
+
+                labels:
+                    datos.map(
+                        s => s.aula
+                    ),
+
+                datasets: [{
+                    label:
+                        "DI medio",
+
+                    data:
+                        datos.map(
+                            s => s.diMedia
+                        )
+                }]
+            }
+        }
+    );
+}
+
+function createVulnerabilityChart() {
+
+    destroyChart(
+        chartVulnerability
+    );
+
+    const datos = getValidStats();
+
+    const vulnerabilidad =
+        datos.map(s => {
+
+            const indice =
+                (s.eta27 * 2)
+                +
+                s.porcentajeSobre27;
+
+            return {
+                aula: s.aula,
+                indice
+            };
+        });
+
+    chartVulnerability =
+        new Chart(
+
+        document.getElementById(
+            "chartVulnerability"
+        ),
+
+        {
+            type: "bar",
+
+            data: {
+
+                labels:
+                    vulnerabilidad.map(
+                        v => v.aula
+                    ),
+
+                datasets: [{
+
+                    label:
+                        "Índice de vulnerabilidad",
+
+                    data:
+                        vulnerabilidad.map(
+                            v => v.indice
+                        )
+                }]
+            }
+        });
 }
