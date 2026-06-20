@@ -335,7 +335,17 @@ const porcentajeSobre27 =
     : 0;
 
 const porcentajeHRFueraRango =
-    const porcentajeDI24 =
+    horasEvaluadas > 0
+    ? (
+        (
+            horasHRBaja +
+            horasHRAlta
+        ) /
+        horasEvaluadas
+    ) * 100
+    : 0;
+
+const porcentajeDI24 =
     horasEvaluadas > 0
     ? (
         horasDI24 /
@@ -347,15 +357,6 @@ const porcentajeDI27 =
     horasEvaluadas > 0
     ? (
         horasDI27 /
-        horasEvaluadas
-    ) * 100
-    : 0;
-    horasEvaluadas > 0
-    ? (
-        (
-            horasHRBaja +
-            horasHRAlta
-        ) /
         horasEvaluadas
     ) * 100
     : 0;
@@ -427,12 +428,15 @@ return {
     diMedia,
 
     diMax,
-horasDI24,
 
-horasDI27,
+    horasDI24,
+
+    horasDI27,
+
     porcentajeDI24,
 
-porcentajeDI27,
+    porcentajeDI27,
+
     categoriaConfort:
         classifyThom(
             diMedia
@@ -446,6 +450,5 @@ porcentajeDI27,
 
     severidad
 };
-
 
 }
