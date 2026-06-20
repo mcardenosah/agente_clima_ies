@@ -335,6 +335,21 @@ const porcentajeSobre27 =
     : 0;
 
 const porcentajeHRFueraRango =
+    const porcentajeDI24 =
+    horasEvaluadas > 0
+    ? (
+        horasDI24 /
+        horasEvaluadas
+    ) * 100
+    : 0;
+
+const porcentajeDI27 =
+    horasEvaluadas > 0
+    ? (
+        horasDI27 /
+        horasEvaluadas
+    ) * 100
+    : 0;
     horasEvaluadas > 0
     ? (
         (
@@ -415,6 +430,9 @@ return {
 horasDI24,
 
 horasDI27,
+    porcentajeDI24,
+
+porcentajeDI27,
     categoriaConfort:
         classifyThom(
             diMedia
