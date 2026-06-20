@@ -80,7 +80,6 @@ porcentajeBajo17,
 porcentajeHRFuera
 ) {
 
-```
 const impacto =
     porcentajeBajo17 +
     porcentajeHRFuera;
@@ -107,7 +106,7 @@ if (
 }
 
 return "Rojo";
-```
+
 
 }
 
