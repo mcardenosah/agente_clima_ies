@@ -88,6 +88,8 @@ processedStats.forEach(stat => {
 <td>${stat.categoriaConfort}</td>
 <td>${stat.severidad}</td>
 <td>${cumple}</td>
+<td>${stat.horasDI24.toFixed(1)}</td>
+<td>${stat.horasDI27.toFixed(1)}</td>
 </tr>
 `;
 });
