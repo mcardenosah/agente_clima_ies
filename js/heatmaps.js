@@ -21,58 +21,35 @@ function createTemperatureHeatmap() {
     }
 
     container.innerHTML = "";
-const fechas = new Set();
 
-aulas.forEach(aula => {
-
-    rawData[aula].forEach(r => {
-
-        const fecha =
-            r.timestamp
-            .toISOString()
-            .split("T")[0];
-
-        fechas.add(fecha);
-
-    });
-
-});
-
-container.innerHTML +=
-    "<h3>Fechas detectadas</h3>";
-
-fechas.forEach(fecha => {
-
-    container.innerHTML +=
-        `<p>${fecha}</p>`;
-
-});
     const aulas =
         Object.keys(rawData);
 
     if (!aulas.length) {
         return;
     }
-const fechas = new Set();
 
-aulas.forEach(aula => {
+    const fechas = new Set();
 
-    rawData[aula].forEach(r => {
+    aulas.forEach(aula => {
 
-        fechas.add(
-            r.timestamp
-             .toISOString()
-             .split("T")[0]
-        );
+        rawData[aula].forEach(r => {
+
+            fechas.add(
+                r.timestamp
+                    .toISOString()
+                    .split("T")[0]
+            );
+
+        });
 
     });
 
-});
+    console.log(
+        "Fechas detectadas:",
+        [...fechas]
+    );
 
-console.log(
-    "Fechas detectadas:",
-    [...fechas]
-);
     let html =
         '<table class="min-w-full border text-xs">';
 
@@ -118,6 +95,7 @@ console.log(
             mediasHora[hora].push(
                 r.temp
             );
+
         });
 
         for (
@@ -132,13 +110,12 @@ console.log(
 
                 const media =
                     mediasHora[hora]
-                    .reduce(
-                        (a,b) => a+b,
-                        0
-                    )
-                    /
+                        .reduce(
+                            (a, b) => a + b,
+                            0
+                        ) /
                     mediasHora[hora]
-                    .length;
+                        .length;
 
                 html +=
                     `<td class='border p-1'>
@@ -149,6 +126,7 @@ console.log(
 
                 html +=
                     "<td class='border'></td>";
+
             }
         }
 
