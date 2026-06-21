@@ -70,7 +70,27 @@ ${fechasOrdenadas.length}
 </p>
 `;
 fechasOrdenadas.forEach(fecha => {
+const aulasDelDia = {};
 
+aulas.forEach(aula => {
+
+    aulasDelDia[aula] =
+        rawData[aula].filter(r => {
+
+            return (
+                r.timestamp
+                 .toISOString()
+                 .split("T")[0]
+            ) === fecha;
+
+        });
+
+});
+
+console.log(
+    fecha,
+    aulasDelDia
+);
     html += `
     <h4 class="font-bold mt-6 mb-2">
         ${fecha}
