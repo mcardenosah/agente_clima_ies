@@ -49,8 +49,26 @@ function createTemperatureHeatmap() {
         "Fechas detectadas:",
         [...fechas]
     );
+let html = "";
 
-    let html =
+html += `
+<h3 class="font-bold text-lg mb-4">
+Periodo analizado
+</h3>
+`;
+
+[...fechas]
+.sort()
+.forEach(fecha => {
+
+    html += `
+    <h4 class="font-bold mt-6 mb-2">
+        ${fecha}
+    </h4>
+    `;
+
+});
+    let html +=
         '<table class="min-w-full border text-xs">';
 
     html += "<tr>";
