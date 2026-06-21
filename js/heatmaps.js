@@ -63,7 +63,12 @@ html += `
 Periodo analizado
 </h3>
 `;
-
+html += `
+<p class="mb-4">
+Número de días detectados:
+${fechasOrdenadas.length}
+</p>
+`;
 [...fechas]
 .sort()
 .forEach(fecha => {
