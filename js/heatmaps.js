@@ -53,7 +53,26 @@ fechas.forEach(fecha => {
     if (!aulas.length) {
         return;
     }
+const fechas = new Set();
 
+aulas.forEach(aula => {
+
+    rawData[aula].forEach(r => {
+
+        fechas.add(
+            r.timestamp
+             .toISOString()
+             .split("T")[0]
+        );
+
+    });
+
+});
+
+console.log(
+    "Fechas detectadas:",
+    [...fechas]
+);
     let html =
         '<table class="min-w-full border text-xs">';
 
