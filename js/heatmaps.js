@@ -69,14 +69,16 @@ Número de días detectados:
 ${fechasOrdenadas.length}
 </p>
 `;
-[...fechas]
-.sort()
-.forEach(fecha => {
+fechasOrdenadas.forEach(fecha => {
 
     html += `
     <h4 class="font-bold mt-6 mb-2">
         ${fecha}
     </h4>
+
+    <div class="mb-4 p-2 border rounded bg-slate-50">
+        Mapa diario pendiente
+    </div>
     `;
 
 });
