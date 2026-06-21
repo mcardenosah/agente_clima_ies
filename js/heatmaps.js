@@ -68,7 +68,7 @@ Periodo analizado
     `;
 
 });
-    let html +=
+    html +=
         '<table class="min-w-full border text-xs">';
 
     html += "<tr>";
