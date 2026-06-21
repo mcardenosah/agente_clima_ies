@@ -253,15 +253,23 @@ Exportar PDF
 <div class="chart-card">
 <div class="chart-card">
     <h3>Índice de Disconfort (DI medio)</h3>
+    <p class="chart-description">
+Combina temperatura y humedad para estimar la sensación térmica percibida. Valores superiores a 24 indican disconfort térmico y valores superiores a 27 indican estrés térmico.
+</p>
     <canvas id="chartDI"></canvas>
 </div>
 
 <div class="chart-card">
     <h3>Vulnerabilidad climática</h3>
+    <p class="chart-description">
+Indicador sintético utilizado para comparar el impacto relativo del calor entre aulas. Valores más altos indican una mayor exposición a condiciones térmicas desfavorables.
+</p>
     <canvas id="chartVulnerability"></canvas>
 </div>
 <h3>ETA27</h3>
-
+<p class="chart-description">
+Acumulación del exceso de temperatura por encima de 27°C a lo largo del tiempo. Permite cuantificar la intensidad y duración de la exposición al calor.
+</p>
 <canvas id="chartETA"></canvas>
 
 </div>
@@ -269,7 +277,9 @@ Exportar PDF
 <div class="chart-card">
 
 <h3>Horas &gt;27°C</h3>
-
+<p class="chart-description">
+Número total de horas en las que la temperatura superó el límite superior recomendado por el Real Decreto 486/1997.
+</p>
 <canvas id="chartHoras27"></canvas>
 
 </div>
@@ -277,7 +287,9 @@ Exportar PDF
 <div class="chart-card">
 
 <h3>Horas &lt;17°C</h3>
-
+<p class="chart-description">
+Número total de horas en las que la temperatura estuvo por debajo del límite inferior recomendado por el Real Decreto 486/1997.
+</p>
 <canvas id="chartHoras17"></canvas>
 
 </div>
@@ -285,7 +297,9 @@ Exportar PDF
 <div class="chart-card">
 
 <h3>% Humedad fuera de rango</h3>
-
+<p class="chart-description">
+Porcentaje del tiempo en el que la humedad relativa estuvo fuera del intervalo recomendado (30%–70%).
+</p>
 <canvas id="chartHR"></canvas>
 
 </div>
@@ -303,7 +317,13 @@ Exportar PDF
 Evolución temporal
 
 </h3>
+<h3 class="font-bold text-lg mb-2">
+Evolución temporal
+</h3>
 
+<p class="chart-description">
+Temperatura registrada en cada aula durante el periodo monitorizado. Permite identificar episodios de sobrecalentamiento y comparar el comportamiento térmico de los distintos espacios.
+</p>
 <div class="line-chart-container">
 
 <canvas id="chartEvolution"></canvas>
@@ -311,7 +331,52 @@ Evolución temporal
 </div>
 
 </div>
+<div class="card mt-8">
 
+<h3 class="section-title">
+Criterios de interpretación
+</h3>
+
+<ul class="list-disc ml-6 space-y-2">
+
+<li>
+<strong>RD 486/1997:</strong>
+para trabajos sedentarios propios de oficinas y aulas se recomienda una temperatura entre 17°C y 27°C.
+</li>
+
+<li>
+<strong>ETA27:</strong>
+acumulación del exceso térmico por encima de 27°C. Valores más altos indican una mayor exposición al calor.
+</li>
+
+<li>
+<strong>Índice de Disconfort (DI):</strong>
+combina temperatura y humedad para estimar la sensación térmica percibida.
+</li>
+
+<li>
+<strong>DI &lt; 21:</strong>
+condiciones confortables.
+</li>
+
+<li>
+<strong>DI entre 21 y 24:</strong>
+ligero disconfort.
+</li>
+
+<li>
+<strong>DI entre 24 y 27:</strong>
+disconfort térmico.
+</li>
+
+<li>
+<strong>DI &gt; 27:</strong>
+estrés térmico.
+</li>
+
+</ul>
+
+</div>
 </div>
 
 </section>
