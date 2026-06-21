@@ -63,7 +63,15 @@ onclick="openTab('dashboard')">
 Dashboard
 
 </button>
+<button
+id="btn-mapas"
+class="tab-button"
+disabled
+onclick="openTab('mapas')">
 
+Mapas térmicos
+
+</button>
 </div>
 
 </div>
@@ -380,12 +388,27 @@ estrés térmico.
 </div>
 
 </section>
+<section
+id="tab-mapas"
+class="tab-content">
 
+<div class="card">
+
+<h2 class="section-title">
+Mapa térmico
+</h2>
+
+<div id="temperatureHeatmap"></div>
+
+</div>
+
+</section>
 </main>
 
 <script src="js/parser.js"></script>
 <script src="js/calculations.js"></script>
 <script src="js/charts.js"></script>
+<script src="js/heatmaps.js"></script>
 <script src="js/pdf.js"></script>
 <script src="js/app.js"></script>
 
