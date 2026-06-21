@@ -298,4 +298,9 @@ function finishProcessing() {
             "btn-dashboard"
         )
         .disabled = false;
+    document
+    .getElementById(
+        "btn-mapas"
+    )
+    .disabled = false;
 }
