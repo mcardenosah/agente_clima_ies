@@ -49,6 +49,13 @@ function createTemperatureHeatmap() {
         "Fechas detectadas:",
         [...fechas]
     );
+    const fechasOrdenadas =
+    [...fechas].sort();
+
+console.log(
+    "Primera fecha:",
+    fechasOrdenadas[0]
+);
 let html = "";
 
 html += `
