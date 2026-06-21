@@ -21,7 +21,32 @@ function createTemperatureHeatmap() {
     }
 
     container.innerHTML = "";
+const fechas = new Set();
 
+aulas.forEach(aula => {
+
+    rawData[aula].forEach(r => {
+
+        const fecha =
+            r.timestamp
+            .toISOString()
+            .split("T")[0];
+
+        fechas.add(fecha);
+
+    });
+
+});
+
+container.innerHTML +=
+    "<h3>Fechas detectadas</h3>";
+
+fechas.forEach(fecha => {
+
+    container.innerHTML +=
+        `<p>${fecha}</p>`;
+
+});
     const aulas =
         Object.keys(rawData);
 
