@@ -274,6 +274,7 @@ function finishProcessing() {
     populateTable();
 
     createCharts();
+    createHeatmaps();
 
     document
         .getElementById(
