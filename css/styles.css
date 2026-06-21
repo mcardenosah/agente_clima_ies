@@ -142,3 +142,15 @@ th {
     background-color: #ccfbf1;
 
 }
+
+/* =====================================
+   Descripciones de gráficos
+   ===================================== */
+
+.chart-description {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-top: -0.5rem;
+    margin-bottom: 1rem;
+    line-height: 1.3;
+}
