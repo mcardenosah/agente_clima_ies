@@ -98,8 +98,13 @@ let html = "";
 
 html += `
 <h3 class="font-bold text-lg mb-4">
-Periodo analizado
+Mapa térmico diario
 </h3>
+
+<p class="mb-4">
+Fecha seleccionada:
+<strong>${fechaSeleccionada}</strong>
+</p>
 `;
 html += `
 <p class="mb-4">
