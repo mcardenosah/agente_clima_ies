@@ -55,13 +55,13 @@ const selector =
     document.getElementById(
         "daySelector"
     );
-
+console.log("Selector:", selector);
 if (selector) {
 
     selector.innerHTML = "";
 
     fechasOrdenadas.forEach(fecha => {
-
+console.log("Añadiendo fecha:", fecha);
         selector.innerHTML += `
             <option value="${fecha}">
                 ${fecha}
