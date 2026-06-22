@@ -1,5 +1,5 @@
 // =====================================================
-// Agente Clima IES
+// Agente Clima IES v1.4 funcional
 // heatmaps.js
 // v1.3
 // Tabla filtrada por fecha seleccionada
