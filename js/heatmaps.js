@@ -1,141 +1,199 @@
 // =====================================================
 // Agente Clima IES
 // heatmaps.js
+// v1.3
+// Tabla filtrada por fecha seleccionada
 // =====================================================
 
 function createHeatmaps() {
 
-    createTemperatureHeatmap();
+```
+createTemperatureHeatmap();
+```
 
 }
 
 function createTemperatureHeatmap() {
 
-    const container =
-        document.getElementById(
-            "temperatureHeatmap"
+```
+const container =
+    document.getElementById(
+        "temperatureHeatmap"
+    );
+
+if (!container) {
+    return;
+}
+
+container.innerHTML = "";
+
+const aulas =
+    Object.keys(rawData);
+
+if (!aulas.length) {
+    return;
+}
+
+// =====================================
+// Fechas disponibles
+// =====================================
+
+const fechas = new Set();
+
+aulas.forEach(aula => {
+
+    rawData[aula].forEach(r => {
+
+        fechas.add(
+            r.timestamp
+                .toISOString()
+                .split("T")[0]
         );
-
-    if (!container) {
-        return;
-    }
-
-    container.innerHTML = "";
-
-    const aulas =
-        Object.keys(rawData);
-
-    if (!aulas.length) {
-        return;
-    }
-
-    // =====================================
-    // Fechas disponibles
-    // =====================================
-
-    const fechas = new Set();
-
-    aulas.forEach(aula => {
-
-        rawData[aula].forEach(r => {
-
-            fechas.add(
-                r.timestamp
-                    .toISOString()
-                    .split("T")[0]
-            );
-
-        });
 
     });
 
-    const fechasOrdenadas =
-        [...fechas].sort();
+});
 
-    // =====================================
-    // Selector de fechas
-    // =====================================
+const fechasOrdenadas =
+    [...fechas].sort();
 
-    const selector =
-        document.getElementById(
-            "daySelector"
-        );
+// =====================================
+// Selector de fechas
+// =====================================
 
-    if (selector) {
+const selector =
+    document.getElementById(
+        "daySelector"
+    );
 
-        selector.innerHTML = "";
+if (selector) {
 
-        fechasOrdenadas.forEach(fecha => {
+    const valorAnterior =
+        selector.value;
 
-            selector.innerHTML += `
-                <option value="${fecha}">
-                    ${fecha}
-                </option>
-            `;
+    selector.innerHTML = "";
 
-        });
+    fechasOrdenadas.forEach(fecha => {
+
+        selector.innerHTML += `
+            <option value="${fecha}">
+                ${fecha}
+            </option>
+        `;
+
+    });
+
+    if (
+        valorAnterior &&
+        fechasOrdenadas.includes(
+            valorAnterior
+        )
+    ) {
+
+        selector.value =
+            valorAnterior;
+
+    } else {
 
         selector.value =
             fechasOrdenadas[0];
 
     }
 
-    const fechaSeleccionada =
-        selector
-            ? selector.value
-            : fechasOrdenadas[0];
+}
 
-    // =====================================
-    // Cabecera
-    // =====================================
+const fechaSeleccionada =
+    selector
+        ? selector.value
+        : fechasOrdenadas[0];
 
-    let html = "";
+// =====================================
+// Cabecera
+// =====================================
 
-    html += `
-    <h3 class="font-bold text-lg mb-4">
-        Mapa térmico diario
-    </h3>
+let html = "";
 
-    <p class="mb-4">
-        Fecha seleccionada:
-        <strong>${fechaSeleccionada}</strong>
-    </p>
+html += `
+<h3 class="font-bold text-lg mb-4">
+    Mapa térmico diario
+</h3>
 
-    <p class="mb-4">
-        Número de días detectados:
-        ${fechasOrdenadas.length}
-    </p>
-    `;
+<p class="mb-4">
+    Fecha seleccionada:
+    <strong>${fechaSeleccionada}</strong>
+</p>
 
-    // =====================================
-    // Bloques diarios temporales
-    // =====================================
+<p class="mb-4">
+    Número de días detectados:
+    ${fechasOrdenadas.length}
+</p>
+`;
 
-    fechasOrdenadas.forEach(fecha => {
+// =====================================
+// Tabla diaria
+// =====================================
 
-        html += `
-        <h4 class="font-bold mt-6 mb-2">
-            ${fecha}
-        </h4>
+html +=
+    '<table class="min-w-full border text-xs">';
 
-        <div class="mb-4 p-2 border rounded bg-slate-50">
-            Mapa diario pendiente
-        </div>
-        `;
+html += "<tr>";
 
-    });
+html +=
+    "<th class='border p-1'>Aula</th>";
 
-    // =====================================
-    // Tabla promedio actual
-    // =====================================
+for (
+    let hora = 0;
+    hora < 24;
+    hora++
+) {
 
     html +=
-        '<table class="min-w-full border text-xs">';
+        `<th class='border p-1'>${hora}</th>`;
+
+}
+
+html += "</tr>";
+
+aulas.forEach(aula => {
 
     html += "<tr>";
 
-    html +=
-        "<th class='border p-1'>Aula</th>";
+    html += `
+        <td class='border p-1 font-bold'>
+            ${aula}
+        </td>
+    `;
+
+    const mediasHora = {};
+
+    rawData[aula].forEach(r => {
+
+        const fechaRegistro =
+            r.timestamp
+                .toISOString()
+                .split("T")[0];
+
+        if (
+            fechaRegistro !==
+            fechaSeleccionada
+        ) {
+            return;
+        }
+
+        const hora =
+            r.timestamp.getHours();
+
+        if (!mediasHora[hora]) {
+
+            mediasHora[hora] = [];
+
+        }
+
+        mediasHora[hora].push(
+            r.temp
+        );
+
+    });
 
     for (
         let hora = 0;
@@ -143,83 +201,42 @@ function createTemperatureHeatmap() {
         hora++
     ) {
 
-        html +=
-            `<th class='border p-1'>${hora}</th>`;
+        if (
+            mediasHora[hora]
+        ) {
+
+            const media =
+                mediasHora[hora]
+                    .reduce(
+                        (a, b) => a + b,
+                        0
+                    ) /
+                mediasHora[hora]
+                    .length;
+
+            html += `
+                <td class='border p-1'>
+                    ${media.toFixed(1)}
+                </td>
+            `;
+
+        } else {
+
+            html +=
+                "<td class='border'></td>";
+
+        }
 
     }
 
     html += "</tr>";
 
-    aulas.forEach(aula => {
+});
 
-        html += "<tr>";
+html += "</table>";
 
-        html += `
-            <td class='border p-1 font-bold'>
-                ${aula}
-            </td>
-        `;
-
-        const mediasHora = {};
-
-        rawData[aula].forEach(r => {
-
-            const hora =
-                r.timestamp.getHours();
-
-            if (!mediasHora[hora]) {
-
-                mediasHora[hora] = [];
-
-            }
-
-            mediasHora[hora].push(
-                r.temp
-            );
-
-        });
-
-        for (
-            let hora = 0;
-            hora < 24;
-            hora++
-        ) {
-
-            if (
-                mediasHora[hora]
-            ) {
-
-                const media =
-                    mediasHora[hora]
-                        .reduce(
-                            (a, b) => a + b,
-                            0
-                        ) /
-                    mediasHora[hora]
-                        .length;
-
-                html += `
-                    <td class='border p-1'>
-                        ${media.toFixed(1)}
-                    </td>
-                `;
-
-            } else {
-
-                html +=
-                    "<td class='border'></td>";
-
-            }
-
-        }
-
-        html += "</tr>";
-
-    });
-
-    html += "</table>";
-
-    container.innerHTML =
-        html;
+container.innerHTML =
+    html;
+```
 
 }
