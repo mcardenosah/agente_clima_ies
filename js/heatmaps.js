@@ -70,6 +70,21 @@ if (selector) {
 
     });
 
+    if (!selector.value) {
+        selector.value =
+            fechasOrdenadas[0];
+    }
+
+}
+
+        selector.innerHTML += `
+            <option value="${fecha}">
+                ${fecha}
+            </option>
+        `;
+
+    });
+
 }
 console.log(
     "Primera fecha:",
