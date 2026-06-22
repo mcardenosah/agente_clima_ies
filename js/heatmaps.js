@@ -7,15 +7,15 @@
 
 function createHeatmaps() {
 
-```
+
 createTemperatureHeatmap();
-```
+
 
 }
 
 function createTemperatureHeatmap() {
 
-```
+
 const container =
     document.getElementById(
         "temperatureHeatmap"
@@ -68,7 +68,7 @@ const selector =
 
 if (selector) {
 
-```
+
 const valorAnterior =
     selector.value;
 
@@ -106,7 +106,7 @@ selector.onchange = function() {
     createTemperatureHeatmap();
 
 };
-```
+
 
 }
 
@@ -246,6 +246,6 @@ html += "</table>";
 
 container.innerHTML =
     html;
-```
+
 
 }
