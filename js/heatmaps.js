@@ -68,39 +68,48 @@ const selector =
 
 if (selector) {
 
-    const valorAnterior =
-        selector.value;
+```
+const valorAnterior =
+    selector.value;
 
-    selector.innerHTML = "";
+selector.innerHTML = "";
 
-    fechasOrdenadas.forEach(fecha => {
+fechasOrdenadas.forEach(fecha => {
 
-        selector.innerHTML += `
-            <option value="${fecha}">
-                ${fecha}
-            </option>
-        `;
+    selector.innerHTML += `
+        <option value="${fecha}">
+            ${fecha}
+        </option>
+    `;
 
-    });
+});
 
-    if (
-        valorAnterior &&
-        fechasOrdenadas.includes(
-            valorAnterior
-        )
-    ) {
+if (
+    valorAnterior &&
+    fechasOrdenadas.includes(
+        valorAnterior
+    )
+) {
 
-        selector.value =
-            valorAnterior;
+    selector.value =
+        valorAnterior;
 
-    } else {
+} else {
 
-        selector.value =
-            fechasOrdenadas[0];
-
-    }
+    selector.value =
+        fechasOrdenadas[0];
 
 }
+
+selector.onchange = function() {
+
+    createTemperatureHeatmap();
+
+};
+```
+
+}
+
 
 const fechaSeleccionada =
     selector
