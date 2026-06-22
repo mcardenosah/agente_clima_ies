@@ -75,19 +75,15 @@ function createTemperatureHeatmap() {
 
         });
 
-        if (!selector.value) {
-
-            selector.value =
-                fechasOrdenadas[0];
-
-        }
+        selector.value =
+            fechasOrdenadas[0];
 
     }
 
     const fechaSeleccionada =
         selector
-        ? selector.value
-        : fechasOrdenadas[0];
+            ? selector.value
+            : fechasOrdenadas[0];
 
     // =====================================
     // Cabecera
@@ -112,7 +108,7 @@ function createTemperatureHeatmap() {
     `;
 
     // =====================================
-    // Bloques diarios (temporales)
+    // Bloques diarios temporales
     // =====================================
 
     fechasOrdenadas.forEach(fecha => {
