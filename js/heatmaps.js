@@ -223,12 +223,40 @@ aulas.forEach(aula => {
                 mediasHora[hora]
                     .length;
 
-            html += `
-                <td class='border p-1'>
-                    ${media.toFixed(1)}
-                </td>
-            `;
+            let claseTemperatura = "";
 
+if (media < 22) {
+
+    claseTemperatura =
+        "temp-muy-frio";
+
+} else if (media < 25) {
+
+    claseTemperatura =
+        "temp-confortable";
+
+} else if (media < 27) {
+
+    claseTemperatura =
+        "temp-calido";
+
+} else if (media < 30) {
+
+    claseTemperatura =
+        "temp-calor";
+
+} else {
+
+    claseTemperatura =
+        "temp-extremo";
+
+}
+
+html += `
+    <td class="border p-1 ${claseTemperatura}">
+        ${media.toFixed(1)}
+    </td>
+`;
         } else {
 
             html +=
