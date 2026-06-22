@@ -51,7 +51,26 @@ function createTemperatureHeatmap() {
     );
     const fechasOrdenadas =
     [...fechas].sort();
+const selector =
+    document.getElementById(
+        "daySelector"
+    );
 
+if (selector) {
+
+    selector.innerHTML = "";
+
+    fechasOrdenadas.forEach(fecha => {
+
+        selector.innerHTML += `
+            <option value="${fecha}">
+                ${fecha}
+            </option>
+        `;
+
+    });
+
+}
 console.log(
     "Primera fecha:",
     fechasOrdenadas[0]
