@@ -29,6 +29,10 @@ function createTemperatureHeatmap() {
         return;
     }
 
+    // =====================================
+    // Fechas disponibles
+    // =====================================
+
     const fechas = new Set();
 
     aulas.forEach(aula => {
@@ -45,103 +49,90 @@ function createTemperatureHeatmap() {
 
     });
 
-    console.log(
-        "Fechas detectadas:",
-        [...fechas]
-    );
     const fechasOrdenadas =
-    [...fechas].sort();
-const selector =
-    document.getElementById(
-        "daySelector"
-    );
+        [...fechas].sort();
 
-if (selector) {
+    // =====================================
+    // Selector de fechas
+    // =====================================
 
-    selector.innerHTML = "";
+    const selector =
+        document.getElementById(
+            "daySelector"
+        );
 
-    fechasOrdenadas.forEach(fecha => {
+    if (selector) {
 
-        selector.innerHTML += `
-            <option value="${fecha}">
-                ${fecha}
-            </option>
-        `;
+        selector.innerHTML = "";
 
-    });
+        fechasOrdenadas.forEach(fecha => {
 
-    if (!selector.value) {
-        selector.value =
-            fechasOrdenadas[0];
-    }
-
-}
-
-        selector.innerHTML += `
-            <option value="${fecha}">
-                ${fecha}
-            </option>
-        `;
-
-    });
-
-}
-console.log(
-    "Primera fecha:",
-    fechasOrdenadas[0]
-);
-const fechaSeleccionada =
-    selector
-    ? selector.value
-    : fechasOrdenadas[0];
-let html = "";
-
-html += `
-<h3 class="font-bold text-lg mb-4">
-Mapa térmico diario
-</h3>
-
-<p class="mb-4">
-Fecha seleccionada:
-<strong>${fechaSeleccionada}</strong>
-</p>
-`;
-html += `
-<p class="mb-4">
-Número de días detectados:
-${fechasOrdenadas.length}
-</p>
-`;
-fechasOrdenadas.forEach(fecha => {
-const aulasDelDia = {};
-
-aulas.forEach(aula => {
-
-    aulasDelDia[aula] =
-        rawData[aula].filter(r => {
-
-            return (
-                r.timestamp
-                 .toISOString()
-                 .split("T")[0]
-            ) === fecha;
+            selector.innerHTML += `
+                <option value="${fecha}">
+                    ${fecha}
+                </option>
+            `;
 
         });
 
-});
+        if (!selector.value) {
 
+            selector.value =
+                fechasOrdenadas[0];
+
+        }
+
+    }
+
+    const fechaSeleccionada =
+        selector
+        ? selector.value
+        : fechasOrdenadas[0];
+
+    // =====================================
+    // Cabecera
+    // =====================================
+
+    let html = "";
 
     html += `
-    <h4 class="font-bold mt-6 mb-2">
-        ${fecha}
-    </h4>
+    <h3 class="font-bold text-lg mb-4">
+        Mapa térmico diario
+    </h3>
 
-    <div class="mb-4 p-2 border rounded bg-slate-50">
-        Mapa diario pendiente
-    </div>
+    <p class="mb-4">
+        Fecha seleccionada:
+        <strong>${fechaSeleccionada}</strong>
+    </p>
+
+    <p class="mb-4">
+        Número de días detectados:
+        ${fechasOrdenadas.length}
+    </p>
     `;
 
-});
+    // =====================================
+    // Bloques diarios (temporales)
+    // =====================================
+
+    fechasOrdenadas.forEach(fecha => {
+
+        html += `
+        <h4 class="font-bold mt-6 mb-2">
+            ${fecha}
+        </h4>
+
+        <div class="mb-4 p-2 border rounded bg-slate-50">
+            Mapa diario pendiente
+        </div>
+        `;
+
+    });
+
+    // =====================================
+    // Tabla promedio actual
+    // =====================================
+
     html +=
         '<table class="min-w-full border text-xs">';
 
@@ -158,6 +149,7 @@ aulas.forEach(aula => {
 
         html +=
             `<th class='border p-1'>${hora}</th>`;
+
     }
 
     html += "</tr>";
@@ -166,10 +158,11 @@ aulas.forEach(aula => {
 
         html += "<tr>";
 
-        html +=
-            `<td class='border p-1 font-bold'>
+        html += `
+            <td class='border p-1 font-bold'>
                 ${aula}
-            </td>`;
+            </td>
+        `;
 
         const mediasHora = {};
 
@@ -209,10 +202,11 @@ aulas.forEach(aula => {
                     mediasHora[hora]
                         .length;
 
-                html +=
-                    `<td class='border p-1'>
+                html += `
+                    <td class='border p-1'>
                         ${media.toFixed(1)}
-                    </td>`;
+                    </td>
+                `;
 
             } else {
 
@@ -220,6 +214,7 @@ aulas.forEach(aula => {
                     "<td class='border'></td>";
 
             }
+
         }
 
         html += "</tr>";
@@ -230,4 +225,5 @@ aulas.forEach(aula => {
 
     container.innerHTML =
         html;
+
 }
