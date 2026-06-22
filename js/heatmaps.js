@@ -136,6 +136,35 @@ html += `
     Número de días detectados:
     ${fechasOrdenadas.length}
 </p>
+
+<div class="flex flex-wrap gap-4 mb-4 text-sm">
+
+    <div class="flex items-center gap-2">
+        <span class="temp-muy-frio border px-3 py-1"></span>
+        <span>&lt; 22°C</span>
+    </div>
+
+    <div class="flex items-center gap-2">
+        <span class="temp-confortable border px-3 py-1"></span>
+        <span>22–25°C</span>
+    </div>
+
+    <div class="flex items-center gap-2">
+        <span class="temp-calido border px-3 py-1"></span>
+        <span>25–27°C</span>
+    </div>
+
+    <div class="flex items-center gap-2">
+        <span class="temp-calor border px-3 py-1"></span>
+        <span>27–30°C</span>
+    </div>
+
+    <div class="flex items-center gap-2">
+        <span class="temp-extremo border px-3 py-1"></span>
+        <span>&gt; 30°C</span>
+    </div>
+
+</div>
 `;
 
 // =====================================
