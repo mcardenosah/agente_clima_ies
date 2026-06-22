@@ -90,6 +90,10 @@ console.log(
     "Primera fecha:",
     fechasOrdenadas[0]
 );
+const fechaSeleccionada =
+    selector
+    ? selector.value
+    : fechasOrdenadas[0];
 let html = "";
 
 html += `
