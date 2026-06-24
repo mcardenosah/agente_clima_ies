@@ -1,7 +1,7 @@
 // =====================================================
-// Agente Clima IES v2.0
+// Agente Clima IES v2.1
 // projects.js
-// Guardar proyecto JSON
+// Guardar / Abrir proyecto JSON
 // =====================================================
 
 function saveProject() {
@@ -31,7 +31,7 @@ function saveProject() {
 
     const project = {
 
-        version: "2.0",
+        version: "2.1",
 
         createdBy:
             "Agente Clima IES",
@@ -108,3 +108,167 @@ function saveProject() {
     );
 
 }
+
+// =====================================
+// Abrir proyecto
+// =====================================
+
+function loadProject() {
+
+    document
+        .getElementById(
+            "project-input"
+        )
+        .click();
+
+}
+
+// =====================================
+// Lectura JSON
+// =====================================
+
+function handleProjectLoad(
+    event
+) {
+
+    const file =
+        event.target.files[0];
+
+    if (!file) {
+        return;
+    }
+
+    const reader =
+        new FileReader();
+
+    reader.onload =
+        function(e) {
+
+            try {
+
+                const project =
+                    JSON.parse(
+                        e.target.result
+                    );
+
+                rawData =
+                    project.rawData || {};
+
+                processedStats =
+                    project.processedStats || [];
+
+                // ====================
+                // Reconstruir fechas
+                // ====================
+
+                Object.values(
+                    rawData
+                ).forEach(
+                    registros => {
+
+                        registros.forEach(
+                            r => {
+
+                                r.timestamp =
+                                    new Date(
+                                        r.timestamp
+                                    );
+
+                            }
+                        );
+
+                    }
+                );
+
+                rebuildProject();
+
+                alert(
+                    "Proyecto cargado correctamente."
+                );
+
+            } catch (error) {
+
+                console.error(
+                    error
+                );
+
+                alert(
+                    "Error al cargar el proyecto."
+                );
+
+            }
+
+        };
+
+    reader.readAsText(
+        file
+    );
+
+}
+
+// =====================================
+// Reconstrucción interfaz
+// =====================================
+
+function rebuildProject() {
+
+    updateSummary();
+
+    populateTable();
+
+    createCharts();
+
+    createHeatmaps();
+
+    document
+        .getElementById(
+            "results-summary"
+        )
+        .classList.remove(
+            "hidden"
+        );
+
+    document
+        .getElementById(
+            "btn-informe"
+        )
+        .disabled = false;
+
+    document
+        .getElementById(
+            "btn-dashboard"
+        )
+        .disabled = false;
+
+    document
+        .getElementById(
+            "btn-mapas"
+        )
+        .disabled = false;
+
+}
+
+// =====================================
+// Activación automática
+// =====================================
+
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+
+        const input =
+            document.getElementById(
+                "project-input"
+            );
+
+        if (input) {
+
+            input.addEventListener(
+                "change",
+                handleProjectLoad
+            );
+
+        }
+
+    }
+);
