@@ -210,3 +210,24 @@ th {
     color: white;
     font-weight: bold;
 }
+/* =====================================
+   Informe
+   ===================================== */
+
+.estado-verde,
+.estado-amarillo,
+.estado-naranja,
+.estado-rojo {
+
+    font-weight: bold;
+    text-align: center;
+
+}
+
+.estado-cumple,
+.estado-incumple {
+
+    font-weight: bold;
+    text-align: center;
+
+}
