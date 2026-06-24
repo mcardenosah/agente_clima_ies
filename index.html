@@ -398,7 +398,35 @@ class="tab-content">
 Mapas térmicos
 </h2>
 
-<div class="mb-4">
+<div class="mb-4 flex flex-wrap gap-4 items-center">
+
+<div>
+
+<label
+for="mapTypeSelector"
+class="font-bold">
+
+Tipo de mapa:
+
+</label>
+
+<select
+id="mapTypeSelector"
+class="border rounded p-2 ml-2">
+
+<option value="temperature">
+Temperatura
+</option>
+
+<option value="di">
+Índice de Disconfort (DI)
+</option>
+
+</select>
+
+</div>
+
+<div>
 
 <label
 for="daySelector"
@@ -413,6 +441,8 @@ id="daySelector"
 class="border rounded p-2 ml-2">
 
 </select>
+
+</div>
 
 </div>
 
