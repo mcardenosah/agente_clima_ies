@@ -283,15 +283,65 @@ function createSummary() {
             "dashboard-summary"
         )
         .innerHTML = `
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <div><strong>Aulas analizadas:</strong> ${datos.length}</div>
-            <div><strong>Cumplen RD486:</strong> ${cumplen}</div>
-            <div><strong>Incumplen RD486:</strong> ${incumplen}</div>
-            <div><strong>Aula más vulnerable:</strong> ${aulaCritica.aula}</div>
-            <div><strong>ETA27 máximo:</strong> ${aulaCritica.eta27.toFixed(1)}</div>
-            <div><strong>Temperatura máxima:</strong> ${tempMax.toFixed(1)} °C</div>
+
+<div class="kpi-grid">
+
+    <div class="kpi-card">
+        <div class="kpi-value">
+            ${datos.length}
         </div>
-        `;
+        <div class="kpi-label">
+            Aulas analizadas
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-value">
+            ${cumplen}
+        </div>
+        <div class="kpi-label">
+            Cumplen RD486
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-value">
+            ${incumplen}
+        </div>
+        <div class="kpi-label">
+            No cumplen RD486
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-value">
+            ${aulaCritica.aula}
+        </div>
+        <div class="kpi-label">
+            Aula más vulnerable
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-value">
+            ${aulaCritica.eta27.toFixed(1)}
+        </div>
+        <div class="kpi-label">
+            ETA27 máximo
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-value">
+            ${tempMax.toFixed(1)}°C
+        </div>
+        <div class="kpi-label">
+            Temperatura máxima
+        </div>
+    </div>
+
+</div>
+`;
 }
 
 function createDIChart() {
