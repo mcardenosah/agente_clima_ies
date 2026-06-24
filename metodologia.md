@@ -250,6 +250,17 @@ Sin embargo, se decidió mantener la formulación clásica porque:
 
 La existencia de formulaciones alternativas queda reconocida y documentada, pero no se adoptan en la versión actual del sistema.
 
+### Clasificación operativa adoptada para el Índice de Disconfort:
+
+<21      Confortable
+21-24    Ligero disconfort
+24-27    Disconfort moderado
+27-29    Disconfort severo
+29-32    Estrés térmico intenso
+>32      Estrés térmico extremo
+
+Estas categorías describen niveles crecientes de disconfort térmico y no deben interpretarse como categorías clínicas de riesgo sanitario.
+
 ## 7. Estado actual de las decisiones metodológicas
 
 ### Decisiones adoptadas
