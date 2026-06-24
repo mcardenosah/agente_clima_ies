@@ -233,6 +233,61 @@ function createHeatmap() {
                 <span>&gt; 32</span>
             </div>
 
+                </div>
+
+        <div class="mt-4 mb-6 overflow-x-auto">
+
+        <table class="min-w-full border text-sm">
+
+        <thead>
+        <tr>
+        <th>DI</th>
+        <th>Interpretación</th>
+        </tr>
+        </thead>
+
+        <tbody>
+
+        <tr>
+        <td>&lt; 21</td>
+        <td>Confortable</td>
+        </tr>
+
+        <tr>
+        <td>21 – 24</td>
+        <td>Ligero disconfort</td>
+        </tr>
+
+        <tr>
+        <td>24 – 27</td>
+        <td>Disconfort moderado</td>
+        </tr>
+
+        <tr>
+        <td>27 – 29</td>
+        <td>Disconfort severo</td>
+        </tr>
+
+        <tr>
+        <td>29 – 32</td>
+        <td>Estrés térmico intenso</td>
+        </tr>
+
+        <tr>
+        <td>&gt; 32</td>
+        <td>Estrés térmico extremo</td>
+        </tr>
+
+        </tbody>
+
+        </table>
+
+        <p class="mt-3 text-sm text-slate-600">
+
+        El Índice de Disconfort (DI) combina la temperatura y la humedad relativa para estimar el grado de incomodidad térmica percibida. La clasificación utilizada se basa en la interpretación clásica del Índice de Thom.
+
+        </p>
+
         </div>
         `;
 
