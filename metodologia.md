@@ -222,6 +222,33 @@ La aplicación calcula indicadores físicos y termohigrométricos.
 La interpretación educativa, sanitaria o de confort constituye una capa posterior que debe fundamentarse en la literatura correspondiente.
 
 ---
+## Definición adoptada del Índice de Disconfort
+
+El Agente Clima IES adopta como definición operativa del Índice de Disconfort (DI) la formulación clásica basada en temperatura del aire y humedad relativa:
+
+DI = T − (0,55 − 0,0055·HR) · (T − 14,5)
+
+donde:
+
+* T es la temperatura del aire (°C).
+* HR es la humedad relativa (%).
+
+### Justificación
+
+Durante el diseño metodológico se revisaron distintas formulaciones del Índice de Thom presentes en la literatura científica.
+
+Se identificó una formulación alternativa empleada por el servicio Urban SIS de Copernicus, basada en la temperatura de bulbo húmedo:
+
+TDI = (Ta + Tw) / 2
+
+Sin embargo, se decidió mantener la formulación clásica porque:
+
+* Utiliza directamente las variables medidas por los sensores del proyecto.
+* Evita introducir una estimación intermedia de la temperatura de bulbo húmedo.
+* Mantiene la coherencia con los indicadores ya implementados en la aplicación.
+* Está ampliamente utilizada en climatología aplicada y estudios de confort térmico.
+
+La existencia de formulaciones alternativas queda reconocida y documentada, pero no se adoptan en la versión actual del sistema.
 
 ## 7. Estado actual de las decisiones metodológicas
 
