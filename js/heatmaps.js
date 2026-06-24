@@ -134,7 +134,98 @@ function createHeatmap() {
         selector
             ? selector.value
             : fechasOrdenadas[0];
+// =====================================
+// Resumen ejecutivo
+// =====================================
 
+let valorMaximo = -Infinity;
+let aulaMaxima = "";
+
+let sumaGlobal = 0;
+let contadorGlobal = 0;
+
+let aulasSobre27 = 0;
+let aulasSobre30 = 0;
+
+let aulasDI27 = 0;
+let aulasDI29 = 0;
+let aulasDI32 = 0;
+
+aulas.forEach(aula => {
+
+    let maxAula = -Infinity;
+
+    rawData[aula].forEach(r => {
+
+        const fechaRegistro =
+            r.timestamp
+                .toISOString()
+                .split("T")[0];
+
+        if (
+            fechaRegistro !==
+            fechaSeleccionada
+        ) {
+            return;
+        }
+
+        const valor =
+            tipoMapa === "temperature"
+            ? r.temp
+            : calculateThomIndex(
+                r.temp,
+                r.hum
+            );
+
+        sumaGlobal += valor;
+        contadorGlobal++;
+
+        if (valor > maxAula) {
+            maxAula = valor;
+        }
+
+        if (valor > valorMaximo) {
+
+            valorMaximo = valor;
+
+            aulaMaxima = aula;
+
+        }
+
+    });
+
+    if (tipoMapa === "temperature") {
+
+        if (maxAula > 27) {
+            aulasSobre27++;
+        }
+
+        if (maxAula > 30) {
+            aulasSobre30++;
+        }
+
+    } else {
+
+        if (maxAula >= 27) {
+            aulasDI27++;
+        }
+
+        if (maxAula >= 29) {
+            aulasDI29++;
+        }
+
+        if (maxAula >= 32) {
+            aulasDI32++;
+        }
+
+    }
+
+});
+
+const mediaGlobal =
+    contadorGlobal > 0
+    ? sumaGlobal / contadorGlobal
+    : 0;
     // =====================================
     // Cabecera
     // =====================================
@@ -160,7 +251,81 @@ function createHeatmap() {
         ${fechasOrdenadas.length}
     </p>
     `;
+html += `
+<div class="mb-6 p-4 bg-slate-50 border rounded">
 
+<h4 class="font-bold mb-2">
+Resumen ejecutivo del día
+</h4>
+
+<p>
+Aulas analizadas:
+<strong>${aulas.length}</strong>
+</p>
+`;
+
+if (tipoMapa === "temperature") {
+
+    html += `
+    <p>
+    Temperatura media global:
+    <strong>${mediaGlobal.toFixed(1)} °C</strong>
+    </p>
+
+    <p>
+    Temperatura máxima:
+    <strong>
+    ${valorMaximo.toFixed(1)} °C
+    (${aulaMaxima})
+    </strong>
+    </p>
+
+    <p>
+    Aulas con temperatura &gt;27 °C:
+    <strong>${aulasSobre27}</strong>
+    </p>
+
+    <p>
+    Aulas con temperatura &gt;30 °C:
+    <strong>${aulasSobre30}</strong>
+    </p>
+    `;
+
+} else {
+
+    html += `
+    <p>
+    DI medio global:
+    <strong>${mediaGlobal.toFixed(1)}</strong>
+    </p>
+
+    <p>
+    DI máximo:
+    <strong>
+    ${valorMaximo.toFixed(1)}
+    (${aulaMaxima})
+    </strong>
+    </p>
+
+    <p>
+    Aulas con DI ≥27:
+    <strong>${aulasDI27}</strong>
+    </p>
+
+    <p>
+    Aulas con DI ≥29:
+    <strong>${aulasDI29}</strong>
+    </p>
+
+    <p>
+    Aulas con DI ≥32:
+    <strong>${aulasDI32}</strong>
+    </p>
+    `;
+
+}
+
+html += `</div>`;
     // =====================================
     // Leyenda
     // =====================================
