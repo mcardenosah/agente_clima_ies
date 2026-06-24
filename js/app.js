@@ -54,35 +54,62 @@ ${incumplenRD}
 // -----------------------------------------------------
 // Tabla informe
 // -----------------------------------------------------
+
 function populateTable() {
-const tbody =
-    document.getElementById(
-        "informe-tbody"
-    );
-tbody.innerHTML = "";
-processedStats.forEach(stat => {
-    if (
-        stat.estado !==
-        "Evaluable"
-    ) {
-        return;
-    }
-    const cumple =
-        stat.cumpleRD
-        ? "✔"
-        : "✘";
-    tbody.innerHTML += `
+
+    const tbody =
+        document.getElementById(
+            "informe-tbody"
+        );
+
+    tbody.innerHTML = "";
+
+    processedStats.forEach(stat => {
+
+        if (
+            stat.estado !==
+            "Evaluable"
+        ) {
+            return;
+        }
+
+        const cumpleClase =
+            stat.cumpleRD
+            ? "estado-cumple"
+            : "estado-incumple";
+
+        const cumpleTexto =
+            stat.cumpleRD
+            ? "✔ Cumple"
+            : "✘ No cumple";
+
+        const severidadClase =
+            `estado-${stat.severidad.toLowerCase()}`;
+
+        tbody.innerHTML += `
+
 <tr>
+
 <td>${stat.aula}</td>
+
 <td>${stat.tMedia.toFixed(1)}</td>
+
 <td>${stat.tMax.toFixed(1)}</td>
+
 <td>${stat.horasMenos17.toFixed(2)}</td>
+
 <td>${stat.horasMas27.toFixed(2)}</td>
+
 <td>${stat.eta27.toFixed(2)}</td>
+
 <td>${stat.hrMedia.toFixed(1)}</td>
+
 <td>${stat.hrMin.toFixed(1)}</td>
+
 <td>${stat.hrMax.toFixed(1)}</td>
+
 <td>${stat.porcentajeHRFueraRango.toFixed(1)}%</td>
+
 <td>${stat.diMedia.toFixed(1)}</td>
 
 <td>${stat.diMax.toFixed(1)}</td>
@@ -96,10 +123,18 @@ processedStats.forEach(stat => {
 <td>${stat.porcentajeDI27.toFixed(1)}%</td>
 
 <td>${stat.categoriaConfort}</td>
-<td>${stat.severidad}</td>
-<td>${cumple}</td>
+
+<td class="${severidadClase}">
+    ${stat.severidad}
+</td>
+
+<td class="${cumpleClase}">
+    ${cumpleTexto}
+</td>
 
 </tr>
+
 `;
-});
+    });
+
 }
