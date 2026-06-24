@@ -7,13 +7,11 @@
 
 function createHeatmaps() {
 
-
-createTemperatureHeatmap();
-
+    createHeatmap();
 
 }
 
-function createTemperatureHeatmap() {
+function createHeatmap() {
 
 
 const container =
@@ -103,7 +101,7 @@ if (
 
 selector.onchange = function() {
 
-    createTemperatureHeatmap();
+    createHeatmap();
 
 };
 
@@ -115,7 +113,26 @@ const fechaSeleccionada =
     selector
         ? selector.value
         : fechasOrdenadas[0];
+const mapTypeSelector =
+    document.getElementById(
+        "mapTypeSelector"
+    );
 
+const tipoMapa =
+    mapTypeSelector
+        ? mapTypeSelector.value
+        : "temperature";
+
+if (mapTypeSelector) {
+
+    mapTypeSelector.onchange =
+        function() {
+
+            createHeatmap();
+
+        };
+
+}
 // =====================================
 // Cabecera
 // =====================================
@@ -124,7 +141,11 @@ let html = "";
 
 html += `
 <h3 class="font-bold text-lg mb-4">
-    Mapa térmico diario
+    ${
+        tipoMapa === "temperature"
+        ? "Mapa térmico diario"
+        : "Mapa DI diario"
+    }
 </h3>
 
 <p class="mb-4">
