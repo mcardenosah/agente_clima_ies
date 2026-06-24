@@ -1,5 +1,5 @@
 // =====================================================
-// Agente Clima IES v1.7d
+// Agente Clima IES v1.7e - Interpretación metodológica del mapa DI
 // heatmaps.js
 // Mapa Temperatura + DI
 // =====================================================
