@@ -179,3 +179,34 @@ th {
     color: white;
     font-weight: bold;
 }
+/* =====================================
+   Heatmap Índice de Disconfort (DI)
+   ===================================== */
+
+.di-confortable {
+    background-color: #86efac;
+}
+
+.di-ligero {
+    background-color: #bbf7d0;
+}
+
+.di-moderado {
+    background-color: #fde047;
+}
+
+.di-severo {
+    background-color: #fb923c;
+}
+
+.di-intenso {
+    background-color: #ef4444;
+    color: white;
+    font-weight: bold;
+}
+
+.di-extremo {
+    background-color: #7e22ce;
+    color: white;
+    font-weight: bold;
+}
