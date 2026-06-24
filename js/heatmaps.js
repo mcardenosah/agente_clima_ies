@@ -248,10 +248,22 @@ aulas.forEach(aula => {
 
         }
 
-        mediasHora[hora].push(
-            r.temp
-        );
+        if (tipoMapa === "temperature") {
 
+    mediasHora[hora].push(
+        r.temp
+    );
+
+} else {
+
+    mediasHora[hora].push(
+        calculateThomIndex(
+            r.temp,
+            r.hum
+        )
+    );
+
+}
     });
 
     for (
