@@ -1036,3 +1036,213 @@ function calculateHeatIndex(
     return kelvinToCelsius(HI);
 
 }
+
+// =====================================================
+// Clasificación Heat Index
+// Agente Clima IES
+//
+// Basada en:
+// - Steadman (1979)
+// - Lu & Romps (2022)
+// - ISGlobal Heat Index Calculator
+//
+// El cálculo es el de Lu & Romps.
+// La interpretación sanitaria sigue la clasificación
+// utilizada por ISGlobal.
+// =====================================================
+
+function classifyHeatIndex(hi){
+
+    if(isNaN(hi)){
+
+        return null;
+
+    }
+
+    if(hi < 27){
+
+        return {
+
+            level:0,
+
+            category:"Sin riesgo",
+
+            color:"#4CAF50",
+
+            effects:
+            "La mayoría de la población no experimenta efectos adversos por calor.",
+
+            recommendation:
+            "Condiciones confortables."
+
+        };
+
+    }
+
+    if(hi < 32){
+
+        return {
+
+            level:1,
+
+            category:"Precaución",
+
+            color:"#FDD835",
+
+            effects:
+            "Posible fatiga tras una exposición prolongada o actividad física continuada.",
+
+            recommendation:
+            "Mantener hidratación y vigilancia."
+
+        };
+
+    }
+
+    if(hi < 41){
+
+        return {
+
+            level:2,
+
+            category:"Precaución extrema",
+
+            color:"#FB8C00",
+
+            effects:
+            "Posibles calambres y agotamiento por calor. La exposición prolongada aumenta el riesgo.",
+
+            recommendation:
+            "Reducir la exposición y aumentar los periodos de descanso."
+
+        };
+
+    }
+
+    if(hi < 54){
+
+        return {
+
+            level:3,
+
+            category:"Peligro",
+
+            color:"#E53935",
+
+            effects:
+            "Alta probabilidad de agotamiento por calor. Existe riesgo de golpe de calor si la exposición continúa.",
+
+            recommendation:
+            "Evitar actividades intensas y limitar la permanencia en espacios cálidos."
+
+        };
+
+    }
+
+    return {
+
+        level:4,
+
+        category:"Peligro extremo",
+
+        color:"#6A1B9A",
+
+        effects:
+        "Riesgo muy elevado de golpe de calor incluso con exposiciones relativamente cortas.",
+
+        recommendation:
+        "Evitar la exposición. Se requieren medidas inmediatas de protección."
+
+    };
+
+}
+
+function getHeatIndexDescription(hi){
+
+    const info = classifyHeatIndex(hi);
+
+    if(!info){
+
+        return "";
+
+    }
+
+    return info.category;
+
+}
+
+
+
+function getHeatIndexColor(hi){
+
+    const info = classifyHeatIndex(hi);
+
+    if(!info){
+
+        return "#999999";
+
+    }
+
+    return info.color;
+
+}
+
+
+
+function getHeatIndexEffects(hi){
+
+    const info = classifyHeatIndex(hi);
+
+    if(!info){
+
+        return "";
+
+    }
+
+    return info.effects;
+
+}
+
+
+
+function getHeatIndexRecommendation(hi){
+
+    const info = classifyHeatIndex(hi);
+
+    if(!info){
+
+        return "";
+
+    }
+
+    return info.recommendation;
+
+}
+
+function calculateHeatIndexInfo(
+
+    temperatura,
+
+    humedad
+
+){
+
+    const hi =
+
+        calculateHeatIndex(
+
+            temperatura,
+
+            humedad
+
+        );
+
+    return{
+
+        value:hi,
+
+        ...classifyHeatIndex(hi)
+
+    };
+
+}
