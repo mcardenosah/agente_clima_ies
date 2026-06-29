@@ -1388,3 +1388,44 @@ function calculateHeatIndexInfo(
     };
 
 }
+
+// =====================================================
+// API pública
+// =====================================================
+
+function calculateHeatIndexResult(tempC, humedad){
+
+    const hi = calculateHeatIndex(
+        tempC,
+        humedad
+    );
+
+    const categoria =
+        classifyHeatIndex(hi);
+
+    return {
+
+        temperatura: tempC,
+
+        humedad,
+
+        hi,
+
+        nivel:
+            categoria.level,
+
+        categoria:
+            categoria.category,
+
+        color:
+            categoria.color,
+
+        efectos:
+            categoria.effects,
+
+        recomendacion:
+            categoria.recommendation
+
+    };
+
+}
