@@ -497,3 +497,542 @@ function solveCore(
     );
 
 }
+
+
+// =====================================================
+// Modelo fisiológico
+// Adaptación directa de heatindex.cpp
+// =====================================================
+
+
+// -----------------------------------------------------
+// Pérdida respiratoria de calor
+// -----------------------------------------------------
+
+function Qv(Ta, Pa){
+
+    const p = 1.013e5;
+
+    const eta = 1.43e-6;
+
+    const L = 2417405.2;
+
+    return (
+
+        eta
+
+        *
+
+        Q
+
+        *
+
+        (
+
+            CPA * (TC - Ta)
+
+            +
+
+            L
+
+            *
+
+            RGASA
+
+            /
+
+            (p * RGASV)
+
+            *
+
+            (PC - Pa)
+
+        )
+
+    );
+
+}
+
+
+
+// -----------------------------------------------------
+// Resistencia evaporativa de la piel
+// -----------------------------------------------------
+
+function Zs(Rs){
+
+    return 6.0e8
+
+        *
+
+        Math.pow(Rs,5);
+
+}
+
+
+
+// -----------------------------------------------------
+// Resistencia térmica piel-aire
+// -----------------------------------------------------
+
+function Ra(T1,T2){
+
+    const epsilon = 0.97;
+
+    const phiRad = 0.80;
+
+    const sigma = 5.67e-8;
+
+    const hr =
+
+        epsilon
+
+        *
+
+        phiRad
+
+        *
+
+        sigma
+
+        *
+
+        (
+
+            T1*T1
+
+            +
+
+            T2*T2
+
+        )
+
+        *
+
+        (
+
+            T1
+
+            +
+
+            T2
+
+        );
+
+    return 1/(HC+hr);
+
+}
+
+
+
+// -----------------------------------------------------
+// Inicialización de PC
+// (debe hacerse después de definir pvstar())
+// -----------------------------------------------------
+
+PC = PHI_SALT * pvstar(TC);
+
+
+
+
+// =====================================================
+// Modelo fisiológico
+// =====================================================
+
+function physiology(T,rh){
+
+    if(T<=0){
+
+        throw new Error(
+
+            "Temperature must be positive."
+
+        );
+
+    }
+
+    if(rh<0 || rh>1){
+
+        throw new Error(
+
+            "Relative humidity must be between 0 and 1."
+
+        );
+
+    }
+
+
+
+    const Ta = T;
+
+    const Pa = rh * pvstar(T);
+
+
+
+    let CdTcdt =
+
+        Q
+
+        -
+
+        Qv(Ta,Pa)
+
+        -
+
+        (TC-Ta)/Ra(TC,Ta)
+
+        -
+
+        (PC-Pa)/ZA;
+
+
+
+    let Rs = 0;
+
+
+
+    if(CdTcdt<0){
+
+        CdTcdt = 0;
+
+        const respiracion =
+
+            Q-Qv(Ta,Pa);
+
+
+
+        const f = function(Ts){
+
+            const RsLocal =
+
+                (TC-Ts)/respiracion;
+
+
+
+            const evaporacion =
+
+                Math.min(
+
+                    (PC-Pa)
+
+                    /
+
+                    (
+
+                        Zs(RsLocal)
+
+                        +
+
+                        ZA
+
+                    ),
+
+                    (
+
+                        PHI_SALT
+
+                        *
+
+                        pvstar(Ts)
+
+                        -
+
+                        Pa
+
+                    )
+
+                    /
+
+                    ZA
+
+                );
+
+
+
+            return (
+
+                (Ts-Ta)
+
+                /
+
+                Ra(Ts,Ta)
+
+                +
+
+                evaporacion
+
+                -
+
+                respiracion
+
+            );
+
+        };
+
+
+
+        const Ts = solve(
+
+            f,
+
+            0,
+
+            TC,
+
+            1e-10,
+
+            100
+
+        );
+
+
+
+        Rs =
+
+            (TC-Ts)
+
+            /
+
+            respiracion;
+
+    }
+
+
+
+    return {
+
+        Rs,
+
+        CdTcdt
+
+    };
+
+}
+
+// =====================================================
+// Heat Index oficial de Lu & Romps
+// =====================================================
+
+function heatIndexKelvin(T,rh){
+
+    if(Number.isNaN(T) || Number.isNaN(rh)){
+
+        return NaN;
+
+    }
+
+    const physio = physiology(T,rh);
+
+    const Rs = physio.Rs;
+
+    const CdTcdt = physio.CdTcdt;
+
+    // -------------------------------------------------
+    // Región II
+    // -------------------------------------------------
+
+    if(Rs>0){
+
+        const f = function(Ta){
+
+            const Pa = Math.min(
+
+                PA0,
+
+                pvstar(Ta)
+
+            );
+
+            const Ts =
+
+                TC
+
+                -
+
+                Rs
+
+                *
+
+                (
+
+                    Q
+
+                    -
+
+                    Qv(Ta,Pa)
+
+                );
+
+            const Ps = Math.min(
+
+                (
+
+                    Zs(Rs)
+
+                    *
+
+                    Pa
+
+                    +
+
+                    ZA
+
+                    *
+
+                    PC
+
+                )
+
+                /
+
+                (
+
+                    Zs(Rs)
+
+                    +
+
+                    ZA
+
+                ),
+
+                PHI_SALT
+
+                *
+
+                pvstar(Ts)
+
+            );
+
+            return (
+
+                Q
+
+                -
+
+                Qv(Ta,Pa)
+
+                -
+
+                (Ts-Ta)/Ra(Ts,Ta)
+
+                -
+
+                (Ps-Pa)/ZA
+
+            );
+
+        };
+
+        return solve(
+
+            f,
+
+            0,
+
+            345,
+
+            1e-8,
+
+            100
+
+        );
+
+    }
+
+    // -------------------------------------------------
+    // Regiones III-IV-V-VI
+    // -------------------------------------------------
+
+    const f = function(Ta){
+
+        const Pa = Math.min(
+
+            PA0,
+
+            pvstar(Ta)
+
+        );
+
+        return (
+
+            Q
+
+            -
+
+            Qv(Ta,Pa)
+
+            -
+
+            (TC-Ta)/Ra(TC,Ta)
+
+            -
+
+            (PC-Pa)/ZA
+
+            -
+
+            CdTcdt
+
+        );
+
+    };
+
+    return solve(
+
+        f,
+
+        340,
+
+        T+3500,
+
+        1e-8,
+
+        100
+
+    );
+
+}
+
+
+
+// =====================================================
+// Interfaz pública
+// =====================================================
+
+function calculateHeatIndex(
+
+    temperaturaC,
+
+    humedad
+
+){
+
+    const T =
+
+        celsiusToKelvin(
+
+            temperaturaC
+
+        );
+
+    const rh =
+
+        rhToFraction(
+
+            humedad
+
+        );
+
+    const HI =
+
+        heatIndexKelvin(
+
+            T,
+
+            rh
+
+        );
+
+    return kelvinToCelsius(HI);
+
+}
