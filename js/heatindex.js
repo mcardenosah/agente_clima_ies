@@ -813,7 +813,12 @@ function physiology(T,rh){
 // Heat Index oficial de Lu & Romps
 // =====================================================
 
-function heatIndexKelvin(T,rh){
+// =====================================================
+// Heat Index oficial
+// Traducción literal de heatindex.cpp
+// =====================================================
+
+function heatindex(T, rh){
 
     if(Number.isNaN(T) || Number.isNaN(rh)){
 
@@ -821,11 +826,148 @@ function heatIndexKelvin(T,rh){
 
     }
 
-    const physio = physiology(T,rh);
+    const physio = physiology(T, rh);
 
-    const Rs = physio.Rs;
+    let Rs = physio.Rs;
 
-    const CdTcdt = physio.CdTcdt;
+    let CdTcdt = physio.CdTcdt;
+
+    if(T === 0){
+
+        return 0;
+
+    }
+
+    // -------------------------------------------------
+    // Región II
+    // -------------------------------------------------
+
+    if(Rs > 0){
+
+        const f = function(Ta){
+
+            const Pa = Math.min(
+                PA0,
+                pvstar(Ta)
+            );
+
+            const Ts =
+                TC -
+                Rs *
+                (
+                    Q -
+                    Qv(Ta, Pa)
+                );
+
+            const Ps = Math.min(
+
+                (
+                    Zs(Rs) * Pa +
+                    ZA * PC
+                )
+                /
+                (
+                    Zs(Rs) + ZA
+                ),
+
+                PHI_SALT *
+                pvstar(Ts)
+
+            );
+
+            return (
+
+                Q
+
+                -
+
+                Qv(Ta, Pa)
+
+                -
+
+                (Ts - Ta) /
+                Ra(Ts, Ta)
+
+                -
+
+                (Ps - Pa) /
+                ZA
+
+            );
+
+        };
+
+        return solve(
+
+            f,
+
+            0,
+
+            345,
+
+            1e-8,
+
+            100
+
+        );
+
+    }
+
+    // -------------------------------------------------
+    // Regiones III-VI
+    // -------------------------------------------------
+
+    const f = function(Ta){
+
+        const Pa = Math.min(
+
+            PA0,
+
+            pvstar(Ta)
+
+        );
+
+        return (
+
+            Q
+
+            -
+
+            Qv(Ta, Pa)
+
+            -
+
+            (TC - Ta) /
+            Ra(TC, Ta)
+
+            -
+
+            (PC - Pa) /
+            ZA
+
+            -
+
+            CdTcdt
+
+        );
+
+    };
+
+    return solve(
+
+        f,
+
+        340,
+
+        T + 3500,
+
+        1e-8,
+
+        100
+
+    );
+
+}
 
     // -------------------------------------------------
     // Región II
