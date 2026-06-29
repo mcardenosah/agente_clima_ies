@@ -373,6 +373,7 @@ Lu, M., & Romps, D. M. (2022). Extending the Heat Index. Journal of Applied Mete
 National Weather Service (NOAA). Heat Index.
 ISGlobal. Heat Index Calculator (basada en el Extended Heat Index de Lu & Romps).
 Steadman, R. G. (1979). The Assessment of Sultriness.
+Repositorio de GitHub de los autores del artículo: https://github.com/davidromps/heatindex
 ### Decisiones pendientes
 
 * Revisión bibliográfica específica sobre los umbrales de clasificación del Índice de Disconfort de Thom.
