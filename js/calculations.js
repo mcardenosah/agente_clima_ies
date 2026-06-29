@@ -454,3 +454,19 @@ return {
 }
 
 // commit test
+// =====================================================
+// HEAT INDEX
+// Conversión de unidades
+// =====================================================
+
+function celsiusToFahrenheit(tempC) {
+
+    return (tempC * 9 / 5) + 32;
+
+}
+
+function fahrenheitToCelsius(tempF) {
+
+    return (tempF - 32) * 5 / 9;
+
+}
