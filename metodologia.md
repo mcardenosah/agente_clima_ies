@@ -271,6 +271,108 @@ Estas categorías describen niveles crecientes de disconfort térmico y no deben
 * Mantener separados los conceptos de confort térmico y estrés térmico.
 * No utilizar índices que requieran variables no medidas por los sensores actuales.
 
+
+3.X. Heat Index (HI)
+Definición
+
+El Heat Index (HI) o Índice de Calor es un indicador biometeorológico que combina la temperatura del aire y la humedad relativa para estimar la temperatura aparente que experimenta el organismo humano. A diferencia de la temperatura ambiental, el Heat Index incorpora el efecto que la humedad ejerce sobre la evaporación del sudor, principal mecanismo fisiológico de disipación del calor.
+
+El resultado se expresa en grados Celsius (°C) y representa la temperatura equivalente que produciría la misma respuesta fisiológica bajo unas condiciones de referencia.
+
+Objetivo
+
+El Heat Index se incorpora al Agente Clima IES como un indicador complementario al Índice de Thom.
+
+Mientras que el Índice de Thom (DI) evalúa el grado de confort o disconfort térmico percibido, el Heat Index estima el esfuerzo fisiológico que debe realizar el organismo para mantener constante su temperatura corporal.
+
+Ambos índices proporcionan información complementaria sobre el ambiente térmico del edificio.
+
+Variables utilizadas
+
+El cálculo del Heat Index requiere únicamente:
+
+Temperatura del aire (°C)
+Humedad relativa (%)
+
+No requiere información sobre velocidad del viento, radiación solar o temperatura radiante.
+
+Implementación
+
+El Agente Clima IES implementa el Extended Heat Index, desarrollado por:
+
+Lu, M. & Romps, D. M. (2022).
+Extending the Heat Index.
+Journal of Applied Meteorology and Climatology.
+
+La implementación utilizada en la aplicación constituye una adaptación a JavaScript de la implementación oficial distribuida por los autores.
+
+No se utiliza la aproximación polinómica clásica de Rothfusz, debido a las limitaciones reconocidas de dicho modelo fuera del rango de temperaturas para el que fue desarrollado.
+
+Conversión de unidades
+
+El algoritmo original del Extended Heat Index está formulado en grados Fahrenheit.
+
+Por este motivo:
+
+la temperatura registrada por los sensores (°C) se convierte inicialmente a grados Fahrenheit;
+el cálculo se realiza íntegramente en dicha escala;
+el resultado final se convierte nuevamente a grados Celsius para su presentación al usuario.
+
+Este procedimiento garantiza la equivalencia con la implementación oficial del modelo.
+
+Clasificación
+
+La clasificación utilizada por el Agente Clima IES sigue la escala empleada por el National Weather Service (NWS) y adoptada por ISGlobal en su calculadora pública del Heat Index.
+
+HI (°C)	Nivel
+<27	Seguro
+27–32	Precaución
+33–40	Precaución extrema
+41–51	Peligro
+52–93	Peligro extremo
+>93	Límite fisiológico
+Interpretación fisiológica
+
+Cada categoría representa un estado diferente de la capacidad del organismo para disipar calor.
+
+Nivel	Interpretación fisiológica
+Seguro	La termorregulación funciona con normalidad.
+Precaución	Aumenta el esfuerzo termorregulador.
+Precaución extrema	La evaporación del sudor comienza a ser insuficiente.
+Peligro	El organismo presenta dificultades crecientes para mantener estable su temperatura corporal.
+Peligro extremo	Los mecanismos fisiológicos de compensación están prácticamente agotados.
+Límite fisiológico	La temperatura corporal aumenta incluso en condiciones ideales de hidratación y sombra.
+Posibles efectos sobre la salud
+
+El Agente Clima IES incorpora también los efectos potenciales sobre la salud asociados a cada intervalo del Heat Index, siguiendo la clasificación divulgativa del National Weather Service reproducida por ISGlobal.
+
+Estos efectos tienen carácter orientativo y deben interpretarse como una estimación del riesgo para una persona adulta sana bajo condiciones de referencia.
+
+En población infantil, personas mayores o individuos con patologías previas, los efectos pueden aparecer con valores inferiores.
+
+Ámbito de aplicación
+
+El Heat Index representa la respuesta fisiológica correspondiente a:
+
+persona adulta sana;
+correctamente hidratada;
+ligera actividad metabólica;
+ligera ventilación;
+ausencia de radiación solar directa.
+
+La presencia de radiación solar intensa, actividad física o condiciones individuales de vulnerabilidad puede incrementar significativamente el riesgo real de estrés térmico.
+
+Validación
+
+La implementación del algoritmo será validada comparando los resultados obtenidos por el Agente Clima IES con la calculadora pública desarrollada por ISGlobal para un conjunto representativo de combinaciones de temperatura y humedad relativa.
+
+La integración del Heat Index en la aplicación solo se considerará finalizada una vez comprobada la concordancia de los resultados dentro del rango de condiciones habitual en edificios escolares.
+
+Referencias
+Lu, M., & Romps, D. M. (2022). Extending the Heat Index. Journal of Applied Meteorology and Climatology.
+National Weather Service (NOAA). Heat Index.
+ISGlobal. Heat Index Calculator (basada en el Extended Heat Index de Lu & Romps).
+Steadman, R. G. (1979). The Assessment of Sultriness.
 ### Decisiones pendientes
 
 * Revisión bibliográfica específica sobre los umbrales de clasificación del Índice de Disconfort de Thom.
