@@ -470,3 +470,140 @@ function fahrenheitToCelsius(tempF) {
     return (tempF - 32) * 5 / 9;
 
 }
+// =====================================================
+// Clasificación Heat Index
+// Basada en National Weather Service
+// Adaptación ISGlobal / Lu & Romps
+// =====================================================
+
+function classifyHeatIndex(hiC) {
+
+    if (hiC < 27) {
+
+        return {
+            nivel: "Seguro",
+            color: "hi-safe",
+            region: "IV",
+            descripcion:
+                "La termorregulación funciona con normalidad.",
+            salud:
+                "No se esperan efectos adversos asociados al calor."
+        };
+
+    }
+
+    if (hiC < 33) {
+
+        return {
+            nivel: "Precaución",
+            color: "hi-caution",
+            region: "IV",
+            descripcion:
+                "Aumenta el esfuerzo termorregulador.",
+            salud:
+                "Fatiga posible con exposición prolongada y/o actividad física."
+        };
+
+    }
+
+    if (hiC < 41) {
+
+        return {
+            nivel: "Precaución extrema",
+            color: "hi-extreme-caution",
+            region: "IV",
+            descripcion:
+                "La evaporación del sudor comienza a ser insuficiente.",
+            salud:
+                "Posibles calambres y agotamiento por calor."
+        };
+
+    }
+
+    if (hiC < 52) {
+
+        return {
+            nivel: "Peligro",
+            color: "hi-danger",
+            region: "IV-V",
+            descripcion:
+                "El organismo tiene dificultades para mantener estable su temperatura.",
+            salud:
+                "Calambres y agotamiento probables; posible golpe de calor."
+        };
+
+    }
+
+    if (hiC < 93) {
+
+        return {
+            nivel: "Peligro extremo",
+            color: "hi-extreme-danger",
+            region: "V",
+            descripcion:
+                "Los mecanismos fisiológicos de compensación están prácticamente agotados.",
+            salud:
+                "Golpe de calor altamente probable."
+        };
+
+    }
+
+    return {
+
+        nivel: "Límite fisiológico",
+
+        color: "hi-limit",
+
+        region: "VI",
+
+        descripcion:
+            "El organismo ya no puede mantener el equilibrio térmico.",
+
+        salud:
+            "La temperatura corporal aumenta incluso en condiciones ideales."
+
+    };
+
+}
+
+// =====================================================
+// Resultado Heat Index
+// =====================================================
+
+function buildHeatIndexResult(hiC) {
+
+    const categoria =
+        classifyHeatIndex(hiC);
+
+    return {
+
+        hi: hiC,
+
+        nivel: categoria.nivel,
+
+        color: categoria.color,
+
+        region: categoria.region,
+
+        descripcion:
+            categoria.descripcion,
+
+        salud:
+            categoria.salud
+
+    };
+
+}
+
+// =====================================================
+// Heat Index
+// IMPLEMENTACIÓN PENDIENTE
+// =====================================================
+
+function calculateHeatIndex(tempC, humedad) {
+
+    throw new Error(
+        "Extended Heat Index aún no implementado."
+    );
+
+}
